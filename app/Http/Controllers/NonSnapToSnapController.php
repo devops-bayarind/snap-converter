@@ -12,6 +12,23 @@ class NonSnapToSnapController extends Controller
 {
     public function createVa(Request $request)
     {
+        $authCode = hash('SHA256',
+            ($request->input('transactionNo') ?? "")
+            . ($request->input('transactionAmount') ?? "")
+            . ($request->input('channelId') ?? "")
+            . (env('BAYARIND_SECRET_KEY'))
+        );
+        if(empty(($request->input('authCode') ?? "")) || ($request->input('authCode') ?? "") != $authCode){
+            CommonHelper::Log("Insert Va ['Invalid auth code']");
+            return response()->json([
+                "channelId" 		=> ($request->input('channelId') ?? ""),
+                "currency" 			=> ($request->input('currency') ?? ""),
+                "insertStatus" 		=> "01",
+                "insertMessage" 	=> "Your transaction cannot be processed",
+                "insertId" 			=> "",
+                "additionalData" 	=> ""
+            ]);
+        }
         //convert request body from non snap to snap
         $snapRequestCreateVaBody = SnapConverter::convertRequestBodyCreateVaNonSnapToSnap($request);
 
@@ -46,13 +63,13 @@ class NonSnapToSnapController extends Controller
 
         //region send create va with snap format
         $snapCreateVaUrl = "https://snaptest.bayarind.id$relativePath";
-        CommonHelper::Log("Snap CreateVa Request URL: ".$snapCreateVaUrl);
-        CommonHelper::Log("Snap CreateVa Request Header: ".json_encode(array_merge($header ,["X-SIGNATURE" => "***********"]), JSON_UNESCAPED_SLASHES));
-        CommonHelper::Log("Snap CreateVa Request Body: ".json_encode($snapRequestCreateVaBody, JSON_UNESCAPED_SLASHES));
+        CommonHelper::Log("Snap CreateVa Request URL: " . $snapCreateVaUrl);
+        CommonHelper::Log("Snap CreateVa Request Header: " . json_encode(array_merge($header, ["X-SIGNATURE" => "***********"]), JSON_UNESCAPED_SLASHES));
+        CommonHelper::Log("Snap CreateVa Request Body: " . json_encode($snapRequestCreateVaBody, JSON_UNESCAPED_SLASHES));
         $response = Http::withHeaders(
             $header
         )->post($snapCreateVaUrl, $snapRequestCreateVaBody);
-        CommonHelper::Log("Snap CreateVa Response Body: ".$response->body());
+        CommonHelper::Log("Snap CreateVa Response Body: " . $response->body());
         if ($response->successful()) {
             $snapResponse = $response->json();
 
@@ -71,4 +88,145 @@ class NonSnapToSnapController extends Controller
             "additionalData" => ""
         ]);
     }
+
+    public function queryStatus(Request $request)
+    {
+        //convert request body from non snap to snap
+        $snapRequestInquiryStatusBody = SnapConverter::convertRequestBodyInquiryStatusVaNonSnapToSnap($request);
+
+        //region generate header
+        $timeStamp = date('c');
+        $httpMethod = "POST";
+        $relativePath = "/api/v1.0/transfer-va/status";
+
+        //region prepare signature
+
+        //create string to sign
+        $stringToSign = SignatureHelper::createStringToSign($httpMethod, $relativePath, $snapRequestInquiryStatusBody, $timeStamp);
+
+        //load private key
+        $privateKey = file_get_contents(env('PRIVATE_KEY_PATH'));
+
+        //generate signature
+        $signature = SignatureHelper::signAsymmetricSignature($stringToSign, $privateKey);
+
+        //endregion prepare signature
+
+
+        $header = [
+            "Content-Type" => "application/json",
+            "X-PARTNER-ID" => ($request->input("channelId") ?? ""),
+            "CHANNEL-ID" => ($request->input("serviceCode") ?? ""),
+            "X-TIMESTAMP" => $timeStamp,
+            "X-EXTERNAL-ID" => uniqid(time()),
+            "X-SIGNATURE" => $signature
+        ];
+        //endregion generate header
+
+        //region send inquiry status va with snap format
+        $snapInquiryStatusUrl = "https://snaptest.bayarind.id$relativePath";
+        CommonHelper::Log("Snap InquiryStatus Request URL: " . $snapInquiryStatusUrl);
+        CommonHelper::Log("Snap InquiryStatus Request Header: " . json_encode(array_merge($header, ["X-SIGNATURE" => "***********"]), JSON_UNESCAPED_SLASHES));
+        CommonHelper::Log("Snap InquiryStatus Request Body: " . json_encode($snapRequestInquiryStatusBody, JSON_UNESCAPED_SLASHES));
+        $response = Http::withHeaders(
+            $header
+        )->post($snapInquiryStatusUrl, $snapRequestInquiryStatusBody);
+        CommonHelper::Log("Snap InquiryStatus Response Body: " . $response->body());
+        if ($response->successful()) {
+            $snapResponse = $response->json();
+
+            //convert response body from snap to non snap
+            $nonSnapResponse = SnapConverter::convertResponseBodyInquiryStatusVaSnapToNonSnap($request, $snapResponse);
+            return response()->json($nonSnapResponse);
+        }
+
+        //endregion send inquiry status va with snap format
+        return response()->json(
+            [
+                "channelId" => ($request->input("channelId") ?? ""),
+                "queryResponse" => [
+                    "transactionNo" => "",
+                    "transactionAmount" => null,
+                    "transactionDate" => "",
+                    "transactionStatus" => "02",
+                    "transactionMessage" => "Transaction not found",
+                    "paymentDate" => "",
+                    "insertId" => "",
+                    "inquiryReqId" => "",
+                    "paymentReqId" => ""
+                ]
+            ]
+        );
+    }
+
+    public function voidTransaction(Request $request)
+    {
+        //convert request body from non snap to snap
+        $snapDeleteVaRequestBody = SnapConverter::convertRequestBodyVoidVaNonSnapToSnap($request);
+
+        //region generate header
+        $timeStamp = date('c');
+        $httpMethod = "DELETE";
+        $relativePath = "/api/v1.0/transfer-va/delete-va";
+
+        //region prepare signature
+
+        //create string to sign
+        $stringToSign = SignatureHelper::createStringToSign($httpMethod, $relativePath, $snapDeleteVaRequestBody, $timeStamp);
+
+        //load private key
+        $privateKey = file_get_contents(env('PRIVATE_KEY_PATH'));
+
+        //generate signature
+        $signature = SignatureHelper::signAsymmetricSignature($stringToSign, $privateKey);
+
+        //endregion prepare signature
+
+
+        $header = [
+            "Content-Type" => "application/json",
+            "X-PARTNER-ID" => ($request->input("channelId") ?? ""),
+            "CHANNEL-ID" => ($request->input("serviceCode") ?? ""),
+            "X-TIMESTAMP" => $timeStamp,
+            "X-EXTERNAL-ID" => uniqid(time()),
+            "X-SIGNATURE" => $signature
+        ];
+        //endregion generate header
+
+        //region send inquiry status va with snap format
+        $snaDeleteVaUrl = "https://snaptest.bayarind.id$relativePath";
+        CommonHelper::Log("Snap DeleteVA Request URL: " . $snaDeleteVaUrl);
+        CommonHelper::Log("Snap DeleteVA Request Header: " . json_encode(array_merge($header, ["X-SIGNATURE" => "***********"]), JSON_UNESCAPED_SLASHES));
+        CommonHelper::Log("Snap DeleteVA Request Body: " . json_encode($snapDeleteVaRequestBody, JSON_UNESCAPED_SLASHES));
+        $response = Http::withHeaders(
+            $header
+        )->delete($snaDeleteVaUrl, $snapDeleteVaRequestBody);
+        CommonHelper::Log("Snap DeleteVA Response Body: " . $response->body());
+        if ($response->successful()) {
+            $snapResponse = $response->json();
+            //convert response body from snap to non snap
+            $nonSnapResponse = SnapConverter::convertResponseBodyVoidVaSnapToNonSnap($request, $snapResponse);
+            return response()->json($nonSnapResponse);
+        }
+
+        //endregion send inquiry status va with snap format
+        return response()->json(
+            [
+                "channelId" => ($request->input("channelId") ?? ""),
+                "queryResponse" => [
+                    "transactionNo" => "",
+                    "transactionAmount" => null,
+                    "transactionDate" => "",
+                    "transactionStatus" => "02",
+                    "transactionMessage" => "Transaction not found",
+                    "paymentDate" => "",
+                    "insertId" => "",
+                    "inquiryReqId" => "",
+                    "paymentReqId" => ""
+                ]
+            ]
+        );
+    }
+
+
 }

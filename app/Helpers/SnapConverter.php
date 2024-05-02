@@ -41,7 +41,102 @@ class SnapConverter
                     "english" => ($request->input("description") ?? "")
                 ]
             ],
-            "expiredDate" => (empty(($request->input("transactionExpire")))) ? '' : date('c', strtotime($request->input("transactionExpire"))),
+            "expiredDate" => (empty(($request->input("transactionExpire") ?? ""))) ? '' : date('c', strtotime($request->input("transactionExpire"))),
+        ];
+
+    }
+
+    //inquiry status va
+    static function convertRequestBodyInquiryStatusVaNonSnapToSnap(Request $request): array
+    {
+        //[NOTE]: please add customerAccount in non snap parameter
+        $customerAccount = ($request->input("customerAccount") ?? "");
+
+        //[NOTE]: please add serviceCode in non snap parameter
+        $serviceCode = ($request->input("serviceCode") ?? "");
+
+        //[NOTE]: if your non snap not send requestId, converter will be generate this parameter
+        if (!empty(($request->input("requestId") ?? ""))) {
+            $inquiryRequestId = $request->input("requestId");
+        } else {
+            $inquiryRequestId = uniqid(time());
+        }
+
+        $binLength = CommonHelper::getCompCodeLength($serviceCode);
+
+        $partnerServiceId = "";
+        $customerNo = "";
+        $virtualAccountNo = "";
+        if (strlen($customerAccount) > $binLength && $binLength > 0) {
+            $partnerServiceId = str_pad(substr($customerAccount, 0, $binLength), 8, " ", STR_PAD_LEFT);
+            $customerNo = substr($customerAccount, $binLength);
+            $virtualAccountNo = $partnerServiceId . $customerNo;
+        }
+
+        //[NOTE] if non snap not send Customer Account, converter will generate dummy virtual account, because this parameter is required for snap
+        if ($binLength > 0 && (empty($virtualAccountNo) || empty($customerNo) || empty($partnerServiceId))) {
+            $randNumber = substr(str_shuffle("0123456789"), 0, $binLength);
+            $partnerServiceId = str_pad($randNumber, 8, " ", STR_PAD_LEFT);
+            $customerNo = str_pad(rand(0, pow(10, 16) - 1), 16, '0', STR_PAD_LEFT);
+            $virtualAccountNo = $partnerServiceId . $customerNo;
+        }
+
+        $snapInquiryRequestBody = [
+            "partnerServiceId" => $partnerServiceId,
+            "customerNo" => $customerNo,
+            "virtualAccountNo" => $virtualAccountNo,
+            "inquiryRequestId" => $inquiryRequestId,
+        ];
+
+        if (!empty(($request->input("queryRequest") ?? ""))) {
+            $jsonQueryRequest = json_decode($request->input("queryRequest"), true);
+            if ($jsonQueryRequest) {
+                if (isset($jsonQueryRequest[0])) {
+                    $snapInquiryRequestBody["additionalInfo"] = [
+                        "trxId" => ($jsonQueryRequest[0]["transactionNo"] ?? ""),
+                        "trxDateInit" => empty(($jsonQueryRequest[0]["transactionDate"] ?? "")) ? "" : date('c', strtotime($jsonQueryRequest[0]["transactionDate"]))
+                    ];
+                }
+            }
+        }
+
+        return $snapInquiryRequestBody;
+
+    }
+
+    //void va
+    static function convertRequestBodyVoidVaNonSnapToSnap(Request $request): array
+    {
+        //[NOTE]: please add customerAccount in non snap parameter
+        $customerAccount = ($request->input("customerAccount") ?? "");
+
+        //[NOTE]: please add serviceCode in non snap parameter
+        $serviceCode = ($request->input("serviceCode") ?? "");
+
+        $binLength = CommonHelper::getCompCodeLength($serviceCode);
+
+        $partnerServiceId = "";
+        $customerNo = "";
+        $virtualAccountNo = "";
+        if (strlen($customerAccount) > $binLength && $binLength > 0) {
+            $partnerServiceId = str_pad(substr($customerAccount, 0, $binLength), 8, " ", STR_PAD_LEFT);
+            $customerNo = substr($customerAccount, $binLength);
+            $virtualAccountNo = $partnerServiceId . $customerNo;
+        }
+
+        //[NOTE] if non snap not send Customer Account, converter will generate dummy virtual account, because this parameter is required for snap
+        if ($binLength > 0 && (empty($virtualAccountNo) || empty($customerNo) || empty($partnerServiceId))) {
+            $randNumber = substr(str_shuffle("0123456789"), 0, $binLength);
+            $partnerServiceId = str_pad($randNumber, 8, " ", STR_PAD_LEFT);
+            $customerNo = str_pad(rand(0, pow(10, 16) - 1), 16, '0', STR_PAD_LEFT);
+            $virtualAccountNo = $partnerServiceId . $customerNo;
+        }
+
+        return [
+            "partnerServiceId" => $partnerServiceId,
+            "customerNo" => $customerNo,
+            "virtualAccountNo" => $virtualAccountNo,
+            "trxId" => ($request->input("transactionNo") ?? ""),
         ];
 
     }
@@ -151,7 +246,7 @@ class SnapConverter
 
     //region snap to non snap
 
-    //create va
+    //response create va
     static function convertResponseBodyCreateVaSnapToNonSnap(Request $request, $snapResponse): array
     {
         if (($snapResponse["responseCode"] ?? "") == "2002700") {
@@ -174,7 +269,102 @@ class SnapConverter
 
     }
 
-    //payment
+    //response inquiry status va
+    static function convertResponseBodyInquiryStatusVaSnapToNonSnap(Request $request, $snapResponse): array
+    {
+        //prepare query response non snap
+        $transactionNo = "";
+        $transactionDate = "";
+        $transactionStatus = "02";
+        $transactionAmount = null;
+        $transactionMessage = "";
+        $insertId = "";
+        $paymentDate = "";
+        $inquiryReqId = "";
+        $paymentReqId = "";
+
+
+        $jsonQueryRequest = json_decode($request->input("queryRequest"), true);
+        if ($jsonQueryRequest) {
+            if (isset($jsonQueryRequest[0])) {
+                $transactionNo = ($jsonQueryRequest[0]["transactionNo"] ?? "");
+                $transactionDate = ($jsonQueryRequest[0]["transactionDate"] ?? "");
+            }
+        }
+
+
+        //transaction not found
+        if (($snapResponse["responseCode"] ?? "") == "4042601") {
+            $transactionMessage = "Transaction not found";
+        } else if (($snapResponse["responseCode"] ?? "") == "2002600") {
+            $transactionAmount = intval($snapResponse["virtualAccountData"]["totalAmount"]["value"]) . "";
+            $transactionDate = empty(($snapResponse["virtualAccountData"]["transactionDate"] ?? "")) ? "" : date('Y-m-d H:i:s', strtotime($snapResponse["virtualAccountData"]["transactionDate"]));
+            $insertId = $snapResponse["virtualAccountData"]["additionalInfo"]["insertId"];
+            $paymentDate = empty(($snapResponse["virtualAccountData"]["trxDateTime"] ?? "")) ? "" : date('Y-m-d H:i:s', strtotime($snapResponse["virtualAccountData"]["trxDateTime"]));
+            $inquiryReqId = $snapResponse["virtualAccountData"]["inquiryRequestId"];
+            $paymentReqId = $snapResponse["virtualAccountData"]["paymentRequestId"];
+            //pending payment
+            if ($snapResponse["virtualAccountData"]["additionalInfo"]["trxStatus"] == "00") {
+                $transactionStatus = "00";
+                $transactionMessage = "Success";
+            } else if ($snapResponse["virtualAccountData"]["additionalInfo"]["trxStatus"] == "03") {
+                $transactionStatus = "03";
+                $transactionMessage = "There is no payment in this transaction";
+            } else if ($snapResponse["virtualAccountData"]["additionalInfo"]["trxStatus"] == "06") {
+                $transactionStatus = "04";
+                $transactionMessage = "Technical Problem";
+            }
+        }
+        return [
+            "channelId" => ($request->input("channelId") ?? ""),
+            "queryResponse" => [
+                [
+                    "transactionNo" => $transactionNo,
+                    "transactionAmount" => $transactionAmount,
+                    "transactionDate" => $transactionDate,
+                    "transactionStatus" => $transactionStatus,
+                    "transactionMessage" => $transactionMessage,
+                    "paymentDate" => $paymentDate,
+                    "insertId" => $insertId,
+                    "inquiryReqId" => $inquiryReqId,
+                    "paymentReqId" => $paymentReqId
+                ]
+            ],
+        ];
+
+    }
+
+    //response void  va
+    static function convertResponseBodyVoidVaSnapToNonSnap(Request $request, $snapResponse): array
+    {
+        $transactionNo = ($request->input("transactionNo") ?? "");
+        $transactionMessage = "General Error";
+        $transactionAmount = "0";
+        $transactionStatus = "01";
+
+        //transaction not found
+        if (($snapResponse["responseCode"] ?? "") == "2003100") {
+            $transactionMessage = "Success";
+            $transactionStatus = "00";
+        } else if (($snapResponse["responseCode"] ?? "") == "4043101") {
+            $transactionMessage = "Transaction Not Found";
+        }else if (($snapResponse["responseCode"] ?? "") == "4043104") {
+            $transactionMessage = "Transaction Has Been Canceled";
+        }else if (($snapResponse["responseCode"] ?? "") == "4043114") {
+            $transactionMessage = "Transaction Has Been Paid";
+        }
+        return [
+            "channelId" => ($request->input("channelId") ?? ""),
+            "transactionNo" => $transactionNo,
+            "transactionAmount" => $transactionAmount,
+            "transactionStatus" => $transactionStatus,
+            "transactionMessage" => $transactionMessage,
+            "transactionType" => "VOID INSERT",
+        ];
+
+    }
+
+    //request body payment
     static function convertRequestBodyPaymentSnapToNonSnap(Request $request): array
     {
         $snapParam = $request->all();
@@ -213,7 +403,7 @@ class SnapConverter
         return $nonSnapPaymentFlagParam;
     }
 
-    //inquiry
+    //request bofy inquiry
     static function convertRequestBodyInquirySnapToNonSnap(Request $request): array
     {
         $snapParam = $request->all();

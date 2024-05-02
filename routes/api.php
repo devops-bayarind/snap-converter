@@ -20,12 +20,15 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 
 //Convert non Snap -> Snap
-Route::controller(\App\Http\Controllers\NonSnapToSnapController::class)->middleware(['request.logger'])->group(function () {
-    Route::post('/PaymentRegister', 'createVa');
-});
+Route::controller(\App\Http\Controllers\NonSnapToSnapController::class)
+    ->middleware(['request.logger'])->group(function () {
+        Route::post('/PaymentRegister', 'createVa');
+        Route::post('/PaymentQuery', 'queryStatus');
+        Route::post('/PostAuth', 'voidTransaction');
+    });
 
 $currentVersion = env("APP_VERSION", "v1.0");
-Route::middleware(['request.logger','snap.authentication'])
+Route::middleware(['request.logger', 'snap.authentication'])
     ->prefix("$currentVersion/transfer-va")
     ->group(function () {
         Route::post('/payment', [\App\Http\Controllers\SnapToNonSnapController::class, 'payment']);

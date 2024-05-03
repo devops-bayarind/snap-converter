@@ -44,6 +44,7 @@ class NonSnapToSnapController extends Controller
 
         //load private key
         $privateKey = openssl_pkey_get_private(env('PRIVATE_KEY_PATH'));
+        CommonHelper::Log("Private key path ".env('PRIVATE_KEY_PATH'));
         if (!$privateKey){
             CommonHelper::Log("Invalid Private Key");
             return response()->json([
@@ -208,6 +209,7 @@ class NonSnapToSnapController extends Controller
 
         //load private key
         $privateKey = openssl_pkey_get_private(env('PRIVATE_KEY_PATH'));
+        CommonHelper::Log("Private key path ".env('PRIVATE_KEY_PATH'));
         if (!$privateKey){
             CommonHelper::Log("Invalid Private Key");
             return response()->json(

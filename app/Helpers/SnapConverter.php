@@ -45,14 +45,14 @@ class SnapConverter
             "expiredDate" => (empty(($request->input("transactionExpire") ?? ""))) ? '' : date('c', strtotime($request->input("transactionExpire"))),
         ];
 
-        $jsonFreeText = json_encode($request->input('freeTexts') ?? "");
+        $jsonFreeText = json_decode($request->input('freeTexts') ?? "");
         if ($jsonFreeText){
             $snapCreateVaRequestBody["additionalInfo"]["freeTexts"] = $jsonFreeText;
         }
 
-        $jsonItemDetails = json_encode($request->input('itemDetails') ?? "");
+        $jsonItemDetails = json_decode($request->input('itemDetails') ?? "");
         if ($jsonItemDetails){
-            $snapCreateVaRequestBody["additionalInfo"]["itemDetails"] = $jsonFreeText;
+            $snapCreateVaRequestBody["additionalInfo"]["itemDetails"] = $jsonItemDetails;
         }
         return $snapCreateVaRequestBody;
     }

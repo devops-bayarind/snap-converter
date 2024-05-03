@@ -45,10 +45,18 @@ class SnapConverter
             "expiredDate" => (empty(($request->input("transactionExpire") ?? ""))) ? '' : date('c', strtotime($request->input("transactionExpire"))),
         ];
 
-        $jsonFreeText = json_decode($request->input('freeTexts') ?? "");
-        if ($jsonFreeText) {
-            $snapCreateVaRequestBody["additionalInfo"]["freeTexts"] = $jsonFreeText;
+        if ($request->has("freeTexts")) {
+            if (is_array($request->input('freeTexts'))) {
+                $snapCreateVaRequestBody["additionalInfo"]["freeTexts"] = $request->input('freeTexts');
+            }else if (is_string($request->input('freeTexts'))){
+                $jsonFreeText = json_decode($request->input('freeTexts') ?? "");
+                if ($jsonFreeText) {
+                    $snapCreateVaRequestBody["additionalInfo"]["freeTexts"] = $jsonFreeText;
+                }
+            }
+
         }
+
 
         $jsonItemDetails = json_decode($request->input('itemDetails') ?? "");
         if ($jsonItemDetails) {
@@ -350,7 +358,7 @@ class SnapConverter
             if (count(($snapResponse["virtualAccountData"]["additionalInfo"]["list"] ?? [])) > 1) {
                 $queryResponse = [];
                 foreach ($snapResponse["virtualAccountData"]["additionalInfo"]["list"] as $itemQueryStatus) {
-                    $queryResponse[]=self::convertQueryFromSnapToNonSnap(
+                    $queryResponse[] = self::convertQueryFromSnapToNonSnap(
                         $itemQueryStatus,
                         $itemQueryStatus["trxId"],
                         $itemQueryStatus["trxStatus"],

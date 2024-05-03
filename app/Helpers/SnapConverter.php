@@ -490,7 +490,7 @@ class SnapConverter
         return $nonSnapPaymentFlagParam;
     }
 
-    //request bofy inquiry
+    //request body inquiry
     static function convertRequestBodyInquirySnapToNonSnap(Request $request): array
     {
         $snapParam = $request->all();

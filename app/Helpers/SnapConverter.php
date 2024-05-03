@@ -112,7 +112,7 @@ class SnapConverter
                     if (count($jsonQueryRequest) > 1) {
                         $listQueryRequest = [];
                         foreach ($jsonQueryRequest as $itemQueryRequest) {
-                            $listQueryRequest = [
+                            $listQueryRequest[] = [
                                 "trxId" => ($itemQueryRequest["transactionNo"] ?? ""),
                                 "trxDateInit" => empty(($itemQueryRequest["transactionDate"] ?? "")) ? "" : date('c', strtotime($jsonQueryRequest[0]["transactionDate"]))
                             ];

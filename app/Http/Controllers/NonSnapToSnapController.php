@@ -398,9 +398,24 @@ class NonSnapToSnapController extends Controller
             );
         }
 
-        $jsonQueryRequest = json_decode($request->input("queryRequest"), true);
-        if ($jsonQueryRequest) {
-            if (isset($jsonQueryRequest[0])) {
+        if (!$request->has("queryRequest")){
+            return response()->json(
+                [
+                    "channelId" => ($request->input("channelId") ?? ""),
+                    "queryResponse" => "Invalid queryRequest Format"
+                ]
+            );
+        }
+        $jsonQueryRequest = json_decode($request->input("queryRequest") ?? "", true);
+        if (!$jsonQueryRequest){
+            return response()->json(
+                [
+                    "channelId" => ($request->input("channelId") ?? ""),
+                    "queryResponse" => "Invalid queryRequest Format"
+                ]
+            );
+        }else{
+            if (empty($jsonQueryRequest)){
                 return response()->json(
                     [
                         "channelId" => ($request->input("channelId") ?? ""),
@@ -408,6 +423,26 @@ class NonSnapToSnapController extends Controller
                     ]
                 );
             }
+
+            if (empty($jsonQueryRequest[0])){
+                return response()->json(
+                    [
+                        "channelId" => ($request->input("channelId") ?? ""),
+                        "queryResponse" => "Invalid queryRequest Format"
+                    ]
+                );
+            }
+            if (empty(($jsonQueryRequest[0]["transactionNo"] ?? "")) || empty(($jsonQueryRequest[0]["transactionDate"] ?? ""))){
+                return response()->json(
+                    [
+                        "channelId" => ($request->input("channelId") ?? ""),
+                        "queryResponse" => "Invalid queryRequest Format"
+                    ]
+                );
+            }
+
+
+
         }
 
         return null;

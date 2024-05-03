@@ -44,7 +44,6 @@ class NonSnapToSnapController extends Controller
 
         //load private key
         $privateKey = openssl_pkey_get_private(env('PRIVATE_KEY_PATH'));
-        CommonHelper::Log("Private key path ".env('PRIVATE_KEY_PATH'));
         if (!$privateKey){
             CommonHelper::Log("Invalid Private Key");
             return response()->json([
@@ -78,8 +77,14 @@ class NonSnapToSnapController extends Controller
         //region send create va with snap format
         $snapCreateVaUrl = "https://snaptest.bayarind.id$relativePath";
         CommonHelper::Log("Snap CreateVa Request URL: " . $snapCreateVaUrl);
-        CommonHelper::Log("Snap CreateVa Request Header: " . json_encode(array_merge($header, ["X-SIGNATURE" => "***********"]), JSON_UNESCAPED_SLASHES));
+        if (env('APP_ENV') == "production"){
+            CommonHelper::Log("Snap CreateVa Request Header: " . json_encode($header, JSON_UNESCAPED_SLASHES));
+        }else{
+            CommonHelper::Log("Snap CreateVa Request Header: " . json_encode(array_merge($header, ["X-SIGNATURE" => "***********"]), JSON_UNESCAPED_SLASHES));
+        }
+
         CommonHelper::Log("Snap CreateVa Request Body: " . json_encode($snapRequestCreateVaBody, JSON_UNESCAPED_SLASHES));
+
         $response = Http::withHeaders(
             $header
         )->post($snapCreateVaUrl, $snapRequestCreateVaBody);
@@ -159,7 +164,11 @@ class NonSnapToSnapController extends Controller
         //region send inquiry status va with snap format
         $snapInquiryStatusUrl = "https://snaptest.bayarind.id$relativePath";
         CommonHelper::Log("Snap InquiryStatus Request URL: " . $snapInquiryStatusUrl);
-        CommonHelper::Log("Snap InquiryStatus Request Header: " . json_encode(array_merge($header, ["X-SIGNATURE" => "***********"]), JSON_UNESCAPED_SLASHES));
+        if (env('APP_ENV') == "production"){
+            CommonHelper::Log("Snap InquiryStatus Request Header: " . json_encode($header, JSON_UNESCAPED_SLASHES));
+        }else{
+            CommonHelper::Log("Snap InquiryStatus Request Header: " . json_encode(array_merge($header, ["X-SIGNATURE" => "***********"]), JSON_UNESCAPED_SLASHES));
+        }
         CommonHelper::Log("Snap InquiryStatus Request Body: " . json_encode($snapRequestInquiryStatusBody, JSON_UNESCAPED_SLASHES));
         $response = Http::withHeaders(
             $header
@@ -209,7 +218,6 @@ class NonSnapToSnapController extends Controller
 
         //load private key
         $privateKey = openssl_pkey_get_private(env('PRIVATE_KEY_PATH'));
-        CommonHelper::Log("Private key path ".env('PRIVATE_KEY_PATH'));
         if (!$privateKey){
             CommonHelper::Log("Invalid Private Key");
             return response()->json(
@@ -243,7 +251,11 @@ class NonSnapToSnapController extends Controller
         //region send inquiry status va with snap format
         $snaDeleteVaUrl = "https://snaptest.bayarind.id$relativePath";
         CommonHelper::Log("Snap DeleteVA Request URL: " . $snaDeleteVaUrl);
-        CommonHelper::Log("Snap DeleteVA Request Header: " . json_encode(array_merge($header, ["X-SIGNATURE" => "***********"]), JSON_UNESCAPED_SLASHES));
+        if (env('APP_ENV') == "production"){
+            CommonHelper::Log("Snap DeleteVA Request Header: " . json_encode($header, JSON_UNESCAPED_SLASHES));
+        }else{
+            CommonHelper::Log("Snap DeleteVA Request Header: " . json_encode(array_merge($header, ["X-SIGNATURE" => "***********"]), JSON_UNESCAPED_SLASHES));
+        }
         CommonHelper::Log("Snap DeleteVA Request Body: " . json_encode($snapDeleteVaRequestBody, JSON_UNESCAPED_SLASHES));
         $response = Http::withHeaders(
             $header

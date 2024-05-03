@@ -24,7 +24,7 @@ class SnapConverter
             $virtualAccountNo = $partnerServiceId . $customerNo;
         }
 
-        $snapCreateVaRequestBody =  [
+        $snapCreateVaRequestBody = [
             "partnerServiceId" => $partnerServiceId,
             "customerNo" => $customerNo,
             "virtualAccountNo" => $virtualAccountNo,
@@ -46,12 +46,12 @@ class SnapConverter
         ];
 
         $jsonFreeText = json_decode($request->input('freeTexts') ?? "");
-        if ($jsonFreeText){
+        if ($jsonFreeText) {
             $snapCreateVaRequestBody["additionalInfo"]["freeTexts"] = $jsonFreeText;
         }
 
         $jsonItemDetails = json_decode($request->input('itemDetails') ?? "");
-        if ($jsonItemDetails){
+        if ($jsonItemDetails) {
             $snapCreateVaRequestBody["additionalInfo"]["itemDetails"] = $jsonItemDetails;
         }
         return $snapCreateVaRequestBody;
@@ -107,7 +107,21 @@ class SnapConverter
                         "trxId" => ($jsonQueryRequest[0]["transactionNo"] ?? ""),
                         "trxDateInit" => empty(($jsonQueryRequest[0]["transactionDate"] ?? "")) ? "" : date('c', strtotime($jsonQueryRequest[0]["transactionDate"]))
                     ];
+
+                    // multipleQueryRequest
+                    if (count($jsonQueryRequest) > 1) {
+                        $listQueryRequest = [];
+                        foreach ($jsonQueryRequest as $itemQueryRequest) {
+                            $listQueryRequest = [
+                                "trxId" => ($itemQueryRequest["transactionNo"] ?? ""),
+                                "trxDateInit" => empty(($itemQueryRequest["transactionDate"] ?? "")) ? "" : date('c', strtotime($jsonQueryRequest[0]["transactionDate"]))
+                            ];
+                        }
+                        $snapInquiryRequestBody["additionalInfo"]["queryRequest"] = $listQueryRequest;
+                    }
+
                 }
+
             }
         }
 
@@ -269,7 +283,7 @@ class SnapConverter
                 "insertId" => $snapResponse["virtualAccountData"]["additionalInfo"]["insertId"],
                 "additionalData" => ""
             ];
-        }else if (($snapResponse["responseCode"] ?? "") == "4092701") {
+        } else if (($snapResponse["responseCode"] ?? "") == "4092701") {
             return [
                 "channelId" => ($request->input("channelId") ?? ""),
                 "currency" => "",
@@ -333,45 +347,37 @@ class SnapConverter
                 ],
             ];
         } else if (($snapResponse["responseCode"] ?? "") == "2002600") {
-            $transactionAmount = intval($snapResponse["virtualAccountData"]["totalAmount"]["value"]) . "";
-            $transactionDate = empty(($snapResponse["virtualAccountData"]["transactionDate"] ?? "")) ? "" : date('Y-m-d H:i:s', strtotime($snapResponse["virtualAccountData"]["transactionDate"]));
-            $insertId = $snapResponse["virtualAccountData"]["additionalInfo"]["insertId"];
-            $paymentDate = empty(($snapResponse["virtualAccountData"]["trxDateTime"] ?? "")) ? "" : date('Y-m-d H:i:s', strtotime($snapResponse["virtualAccountData"]["trxDateTime"]));
-            $inquiryReqId = $snapResponse["virtualAccountData"]["inquiryRequestId"];
-            $paymentReqId = $snapResponse["virtualAccountData"]["paymentRequestId"];
-            //pending payment
-            if ($snapResponse["virtualAccountData"]["additionalInfo"]["trxStatus"] == "00") {
-                $transactionStatus = "00";
-                $transactionMessage = "Success";
-            } else if ($snapResponse["virtualAccountData"]["additionalInfo"]["trxStatus"] == "03") {
-                $transactionStatus = "03";
-                $transactionMessage = "There is no payment in this transaction";
-            } else if ($snapResponse["virtualAccountData"]["additionalInfo"]["trxStatus"] == "06") {
-                $transactionStatus = "04";
-                $transactionMessage = "Technical Problem";
+            if (count(($snapResponse["virtualAccountData"]["list"] ?? [])) > 1) {
+                $queryResponse = [];
+                foreach ($snapResponse["virtualAccountData"]["list"] as $itemQueryStatus) {
+                    $queryResponse[]=self::convertQueryFromSnapToNonSnap(
+                        $itemQueryStatus,
+                        $itemQueryStatus["trxId"],
+                        $itemQueryStatus["trxStatus"],
+                        $itemQueryStatus["insertId"],
+                    );
+                }
+            } else {
+                $queryResponse = [
+                    self::convertQueryFromSnapToNonSnap(
+                        $snapResponse["virtualAccountData"],
+                        $transactionNo,
+                        $snapResponse["virtualAccountData"]["additionalInfo"]["trxStatus"],
+                        ($jsonQueryRequest[0]["transactionNo"] ?? "")
+                    )
+                ];
             }
             return [
                 "channelId" => ($request->input("channelId") ?? ""),
-                "queryResponse" => [
-                    [
-                        "transactionNo" => $transactionNo,
-                        "transactionAmount" => $transactionAmount,
-                        "transactionDate" => $transactionDate,
-                        "transactionStatus" => $transactionStatus,
-                        "transactionMessage" => $transactionMessage,
-                        "paymentDate" => $paymentDate,
-                        "insertId" => $insertId,
-                        "inquiryReqId" => $inquiryReqId,
-                        "paymentReqId" => $paymentReqId
-                    ]
-                ],
+                "queryResponse" => $queryResponse
             ];
-        }else if(($snapResponse["responseCode"] ?? "") == "4012600"){
+
+        } else if (($snapResponse["responseCode"] ?? "") == "4012600") {
             return [
                 "channelId" => ($request->input("channelId") ?? ""),
                 "queryResponse" => "Technical Problem [Unauthorized]"
             ];
-        }else{
+        } else {
             return [
                 "channelId" => ($request->input("channelId") ?? ""),
                 "queryResponse" => "Technical Problem"
@@ -379,6 +385,50 @@ class SnapConverter
         }
 
 
+    }
+
+    static function convertQueryFromSnapToNonSnap($snapQueryResponse, $transactionNo, $snapTrxStatus, $insertId)
+    {
+        $transactionAmount = intval($snapQueryResponse["totalAmount"]["value"]) . "";
+        $transactionDate = empty(($snapQueryResponse["transactionDate"] ?? "")) ? "" : date('Y-m-d H:i:s', strtotime($snapQueryResponse["transactionDate"]));
+//        $insertId = $snapQueryResponse["additionalInfo"]["insertId"];
+        $paymentDate = empty(($snapQueryResponse["trxDateTime"] ?? "")) ? "" : date('Y-m-d H:i:s', strtotime($snapQueryResponse["trxDateTime"]));
+        $inquiryReqId = $snapQueryResponse["inquiryRequestId"];
+        $paymentReqId = $snapQueryResponse["paymentRequestId"];
+        //pending payment
+//        if ($snapResponse["virtualAccountData"]["additionalInfo"]["trxStatus"] == "00") {
+//            $transactionStatus = "00";
+//            $transactionMessage = "Success";
+//        } else if ($snapResponse["virtualAccountData"]["additionalInfo"]["trxStatus"] == "03") {
+//            $transactionStatus = "03";
+//            $transactionMessage = "There is no payment in this transaction";
+//        } else if ($snapResponse["virtualAccountData"]["additionalInfo"]["trxStatus"] == "06") {
+//            $transactionStatus = "04";
+//            $transactionMessage = "Technical Problem";
+//        }
+        $transactionStatus = "04";
+        $transactionMessage = "Technical Problem";
+        if ($snapTrxStatus == "00") {
+            $transactionStatus = "00";
+            $transactionMessage = "Success";
+        } else if ($snapTrxStatus == "03") {
+            $transactionStatus = "03";
+            $transactionMessage = "There is no payment in this transaction";
+        } else if ($snapTrxStatus == "06") {
+            $transactionStatus = "04";
+            $transactionMessage = "Technical Problem";
+        }
+        return [
+            "transactionNo" => $transactionNo,
+            "transactionAmount" => $transactionAmount,
+            "transactionDate" => $transactionDate,
+            "transactionStatus" => $transactionStatus,
+            "transactionMessage" => $transactionMessage,
+            "paymentDate" => $paymentDate,
+            "insertId" => $insertId,
+            "inquiryReqId" => $inquiryReqId,
+            "paymentReqId" => $paymentReqId
+        ];
     }
 
     //response void  va
@@ -395,9 +445,9 @@ class SnapConverter
             $transactionStatus = "00";
         } else if (($snapResponse["responseCode"] ?? "") == "4043101") {
             $transactionMessage = "Transaction Not Found";
-        }else if (($snapResponse["responseCode"] ?? "") == "4043104") {
+        } else if (($snapResponse["responseCode"] ?? "") == "4043104") {
             $transactionMessage = "Transaction Has Been Canceled";
-        }else if (($snapResponse["responseCode"] ?? "") == "4043114") {
+        } else if (($snapResponse["responseCode"] ?? "") == "4043114") {
             $transactionMessage = "Transaction Has Been Paid";
         }
         return [

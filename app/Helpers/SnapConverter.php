@@ -54,13 +54,20 @@ class SnapConverter
                     $snapCreateVaRequestBody["additionalInfo"]["freeTexts"] = $jsonFreeText;
                 }
             }
-
         }
 
 
         $jsonItemDetails = json_decode($request->input('itemDetails') ?? "");
         if ($jsonItemDetails) {
             $snapCreateVaRequestBody["additionalInfo"]["itemDetails"] = $jsonItemDetails;
+        }
+
+        if ($request->has("additionalData")) {
+            if (is_string($request->input('additionalData'))){
+                if (!empty($request->input('additionalData'))){
+                    $snapCreateVaRequestBody["additionalInfo"]["additionalData"] = $request->input('additionalData');
+                }
+            }
         }
         return $snapCreateVaRequestBody;
     }

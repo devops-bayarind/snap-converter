@@ -24,7 +24,7 @@ class NonSnapToSnapController extends Controller
                 "channelId" 		=> ($request->input('channelId') ?? ""),
                 "currency" 			=> ($request->input('currency') ?? ""),
                 "insertStatus" 		=> "01",
-                "insertMessage" 	=> "Your transaction cannot be processed",
+                "insertMessage" 	=> "Invalid auth code",
                 "insertId" 			=> "",
                 "additionalData" 	=> ""
             ]);

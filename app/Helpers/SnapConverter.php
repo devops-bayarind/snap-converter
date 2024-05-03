@@ -23,7 +23,8 @@ class SnapConverter
             $customerNo = substr($customerAccount, $binLength);
             $virtualAccountNo = $partnerServiceId . $customerNo;
         }
-        return [
+
+        $snapCreateVaRequestBody =  [
             "partnerServiceId" => $partnerServiceId,
             "customerNo" => $customerNo,
             "virtualAccountNo" => $virtualAccountNo,
@@ -44,6 +45,16 @@ class SnapConverter
             "expiredDate" => (empty(($request->input("transactionExpire") ?? ""))) ? '' : date('c', strtotime($request->input("transactionExpire"))),
         ];
 
+        $jsonFreeText = json_decode($request->input('freeTexts') ?? "");
+        if ($jsonFreeText){
+            $snapCreateVaRequestBody["additionalInfo"]["freeTexts"] = $jsonFreeText;
+        }
+
+        $jsonItemDetails = json_decode($request->input('itemDetails') ?? "");
+        if ($jsonItemDetails){
+            $snapCreateVaRequestBody["additionalInfo"]["itemDetails"] = $jsonFreeText;
+        }
+        return $snapCreateVaRequestBody;
     }
 
     //inquiry status va

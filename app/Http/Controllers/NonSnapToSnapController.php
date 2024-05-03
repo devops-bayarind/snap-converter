@@ -366,6 +366,28 @@ class NonSnapToSnapController extends Controller
             ]);
         }
 
+        if (empty($request->input('transactionDate') ?? "")){
+            return response()->json([
+                "channelId" 		=> ($request->input('channelId') ?? ""),
+                "currency" 			=> ($request->input('currency') ?? ""),
+                "insertStatus" 		=> "01",
+                "insertMessage" 	=> "Invalid transactionDate",
+                "insertId" 			=> "",
+                "additionalData" 	=> ""
+            ]);
+        }
+
+        if (empty($request->input('transactionExpire') ?? "")){
+            return response()->json([
+                "channelId" 		=> ($request->input('channelId') ?? ""),
+                "currency" 			=> ($request->input('currency') ?? ""),
+                "insertStatus" 		=> "01",
+                "insertMessage" 	=> "Invalid transactionExpire",
+                "insertId" 			=> "",
+                "additionalData" 	=> ""
+            ]);
+        }
+
 
         return null;
     }

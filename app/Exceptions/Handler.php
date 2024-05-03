@@ -40,7 +40,7 @@ class Handler extends ExceptionHandler
             Log::info("Internal Error",[
                 "error" => $e->getMessage(),
                 "code" => $e->getCode(),
-                "trace" => $e->getTrace(),
+//                "trace" => $e->getTrace(),
             ]);
             return response()->json([
                 "responseCode"=>  "5000001",

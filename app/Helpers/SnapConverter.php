@@ -258,6 +258,14 @@ class SnapConverter
                 "insertId" => $snapResponse["virtualAccountData"]["additionalInfo"]["insertId"],
                 "additionalData" => ""
             ];
+        }else if (($snapResponse["responseCode"] ?? "") == "4092701") {
+            return [
+                "channelId" => ($request->input("channelId") ?? ""),
+                "currency" => "",
+                "insertStatus" => "01",
+                "insertMessage" => "Transaction is Exist",
+                "additionalData" => ""
+            ];
         }
         return [
             "channelId" => ($request->input("channelId") ?? ""),

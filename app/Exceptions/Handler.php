@@ -3,6 +3,7 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -35,7 +36,18 @@ class Handler extends ExceptionHandler
     public function register()
     {
         $this->reportable(function (Throwable $e) {
-            //
+            $this->renderable(function (Throwable $e) {
+                //
+                Log::info("Internal Error",[
+                    "error" => $e->getMessage(),
+                    "code" => $e->getCode(),
+                    "trace" => $e->getTrace(),
+                ]);
+                return response()->json([
+                    "responseCode"=>  "5000001",
+                    "responseMessage" => "Internal Server Error"
+                ], 200, ['X-TIMESTAMP' => date('c')]);
+            });
         });
     }
 }

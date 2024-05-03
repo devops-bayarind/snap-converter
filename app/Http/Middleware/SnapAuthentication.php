@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Helpers\CommonHelper;
 use App\Helpers\SignatureHelper;
 use Closure;
 use Illuminate\Http\Request;
@@ -35,7 +36,19 @@ class SnapAuthentication
 
         $relativePath = (substr($request->path(), 0, 1)!='/') ? '/'.$request->path() : $request->path();
         $stringToSign = SignatureHelper::createStringToSign($request->method(), $relativePath,$request->getContent(), $timestamp);
-        $publicKey = file_get_contents(env("BAYARIND_PUBLIC_KEY_PATH"));
+
+//        Load public key
+
+        $publicKey = openssl_pkey_get_public(env('BAYARIND_PUBLIC_KEY_PATH'));
+        if (!$publicKey){
+            CommonHelper::Log("Invalid public Key");
+            return response()->json([
+                "responseCode" => "400" . $apiServiceCode . "02",
+                "responseMessage" => "Unauthorized Signature",
+            ]);
+        }
+        
+
         if (!SignatureHelper::verifyAsymmetricSignature($signature,$stringToSign,$publicKey)){
             return response()->json([
                 "responseCode" => "400" . $apiServiceCode . "02",

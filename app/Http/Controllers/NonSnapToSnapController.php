@@ -43,7 +43,20 @@ class NonSnapToSnapController extends Controller
         $stringToSign = SignatureHelper::createStringToSign($httpMethod, $relativePath, $snapRequestCreateVaBody, $timeStamp);
 
         //load private key
-        $privateKey = file_get_contents(env('PRIVATE_KEY_PATH'));
+        $privateKey = openssl_pkey_get_private(env('PRIVATE_KEY_PATH'));
+        if (!$privateKey){
+            CommonHelper::Log("Invalid Private Key");
+            return response()->json([
+                "channelId" 		=> ($request->input('channelId') ?? ""),
+                "currency" 			=> ($request->input('currency') ?? ""),
+                "insertStatus" 		=> "01",
+                "insertMessage" 	=> "Your transaction cannot be processed",
+                "insertId" 			=> "",
+                "additionalData" 	=> ""
+            ]);
+        }
+
+//        $privateKey = file_get_contents(env('PRIVATE_KEY_PATH'));
 
         //generate signature
         $signature = SignatureHelper::signAsymmetricSignature($stringToSign, $privateKey);
@@ -105,7 +118,26 @@ class NonSnapToSnapController extends Controller
         $stringToSign = SignatureHelper::createStringToSign($httpMethod, $relativePath, $snapRequestInquiryStatusBody, $timeStamp);
 
         //load private key
-        $privateKey = file_get_contents(env('PRIVATE_KEY_PATH'));
+        $privateKey = openssl_pkey_get_private(env('PRIVATE_KEY_PATH'));
+        if (!$privateKey){
+            CommonHelper::Log("Invalid Private Key");
+            return response()->json(
+                [
+                    "channelId" => ($request->input("channelId") ?? ""),
+                    "queryResponse" => [
+                        "transactionNo" => "",
+                        "transactionAmount" => null,
+                        "transactionDate" => "",
+                        "transactionStatus" => "02",
+                        "transactionMessage" => "General Error",
+                        "paymentDate" => "",
+                        "insertId" => "",
+                        "inquiryReqId" => "",
+                        "paymentReqId" => ""
+                    ]
+                ]
+            );
+        }
 
         //generate signature
         $signature = SignatureHelper::signAsymmetricSignature($stringToSign, $privateKey);
@@ -175,7 +207,20 @@ class NonSnapToSnapController extends Controller
         $stringToSign = SignatureHelper::createStringToSign($httpMethod, $relativePath, $snapDeleteVaRequestBody, $timeStamp);
 
         //load private key
-        $privateKey = file_get_contents(env('PRIVATE_KEY_PATH'));
+        $privateKey = openssl_pkey_get_private(env('PRIVATE_KEY_PATH'));
+        if (!$privateKey){
+            CommonHelper::Log("Invalid Private Key");
+            return response()->json(
+                [
+                    "channelId" => ($request->input("channelId") ?? ""),
+                    "transactionNo" => "",
+                    "transactionAmount" => "0",
+                    "transactionStatus" => "01",
+                    "transactionMessage" => "General error",
+                    "transactionType" => "VOID INSERT",
+                ]
+            );
+        }
 
         //generate signature
         $signature = SignatureHelper::signAsymmetricSignature($stringToSign, $privateKey);
@@ -213,17 +258,11 @@ class NonSnapToSnapController extends Controller
         return response()->json(
             [
                 "channelId" => ($request->input("channelId") ?? ""),
-                "queryResponse" => [
-                    "transactionNo" => "",
-                    "transactionAmount" => null,
-                    "transactionDate" => "",
-                    "transactionStatus" => "02",
-                    "transactionMessage" => "Transaction not found",
-                    "paymentDate" => "",
-                    "insertId" => "",
-                    "inquiryReqId" => "",
-                    "paymentReqId" => ""
-                ]
+                "transactionNo" => "",
+                "transactionAmount" => "0",
+                "transactionStatus" => "01",
+                "transactionMessage" => "General error",
+                "transactionType" => "VOID INSERT",
             ]
         );
     }

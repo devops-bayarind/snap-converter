@@ -365,6 +365,11 @@ class SnapConverter
                     ]
                 ],
             ];
+        }else if(($snapResponse["responseCode"] ?? "") == "4012600"){
+            return [
+                "channelId" => ($request->input("channelId") ?? ""),
+                "queryResponse" => "Technical Problem [Unauthorized]"
+            ];
         }else{
             return [
                 "channelId" => ($request->input("channelId") ?? ""),

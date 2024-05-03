@@ -12,6 +12,18 @@ class NonSnapToSnapController extends Controller
 {
     public function createVa(Request $request)
     {
+
+        if (empty($request->input('serviceCode') ?? "")){
+            return response()->json([
+                "channelId" 		=> ($request->input('channelId') ?? ""),
+                "currency" 			=> ($request->input('currency') ?? ""),
+                "insertStatus" 		=> "01",
+                "insertMessage" 	=> "serviceCode cant be empty",
+                "insertId" 			=> "",
+                "additionalData" 	=> ""
+            ]);
+        }
+
         $authCode = hash('SHA256',
             ($request->input('transactionNo') ?? "")
             . ($request->input('transactionAmount') ?? "")
@@ -204,6 +216,18 @@ class NonSnapToSnapController extends Controller
 
     public function voidTransaction(Request $request)
     {
+        if (empty($request->input('serviceCode') ?? "")){
+            return response()->json(
+                [
+                    "channelId" => ($request->input("channelId") ?? ""),
+                    "transactionNo" => "",
+                    "transactionAmount" => "0",
+                    "transactionStatus" => "01",
+                    "transactionMessage" => "serviceCode cant be empty",
+                    "transactionType" => "VOID INSERT",
+                ]
+            );
+        }
         //convert request body from non snap to snap
         $snapDeleteVaRequestBody = SnapConverter::convertRequestBodyVoidVaNonSnapToSnap($request);
 

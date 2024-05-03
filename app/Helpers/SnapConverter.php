@@ -315,6 +315,7 @@ class SnapConverter
         //transaction not found
         if (($snapResponse["responseCode"] ?? "") == "4042601") {
             $transactionMessage = "Transaction not found";
+            $transactionStatus = "02";
             return [
                 "channelId" => ($request->input("channelId") ?? ""),
                 "queryResponse" => [

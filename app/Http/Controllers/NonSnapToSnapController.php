@@ -398,6 +398,18 @@ class NonSnapToSnapController extends Controller
             );
         }
 
+        $jsonQueryRequest = json_decode($request->input("queryRequest"), true);
+        if (!$jsonQueryRequest) {
+            if (isset($jsonQueryRequest[0])) {
+                return response()->json(
+                    [
+                        "channelId" => ($request->input("channelId") ?? ""),
+                        "queryResponse" => "Invalid queryRequest Format"
+                    ]
+                );
+            }
+        }
+
         return null;
     }
 

@@ -33,7 +33,7 @@ class SnapConverter
             "trxId" => ($request->input("transactionNo") ?? ""),
             "totalAmount" => [
                 "value" => intval(($request->input("transactionAmount") ?? "0")) . ".00",
-                "currency" => "IDR"
+                "currency" => ($request->input("currency") ?? ""),
             ],
             "billDetails" => [
                 [

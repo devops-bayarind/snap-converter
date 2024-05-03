@@ -41,6 +41,8 @@ class NonSnapToSnapController extends Controller
                 "additionalData" 	=> ""
             ]);
         }
+
+
         //convert request body from non snap to snap
         $snapRequestCreateVaBody = SnapConverter::convertRequestBodyCreateVaNonSnapToSnap($request);
 

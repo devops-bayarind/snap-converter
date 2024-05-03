@@ -342,6 +342,19 @@ class NonSnapToSnapController extends Controller
             ]);
         }
 
+        if (trim(($request->input('customerAccount') ?? "")) == ""){
+            return response()->json([
+                "channelId" 		=> ($request->input('channelId') ?? ""),
+                "currency" 			=> ($request->input('currency') ?? ""),
+                "insertStatus" 		=> "01",
+                "insertMessage" 	=> "transactionAmount cant be empty",
+                "insertId" 			=> "",
+                "additionalData" 	=> ""
+            ]);
+        }
+
+
+
         if (empty($request->input('customerName') ?? "")){
             return response()->json([
                 "channelId" 		=> ($request->input('channelId') ?? ""),

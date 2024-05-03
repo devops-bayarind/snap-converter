@@ -77,7 +77,7 @@ class NonSnapToSnapController extends Controller
         //region send create va with snap format
         $snapCreateVaUrl = "https://snaptest.bayarind.id$relativePath";
         CommonHelper::Log("Snap CreateVa Request URL: " . $snapCreateVaUrl);
-        if (env('APP_ENV') == "production"){
+        if (env('APP_ENV') != "production"){
             CommonHelper::Log("Snap CreateVa Request Header: " . json_encode($header, JSON_UNESCAPED_SLASHES));
         }else{
             CommonHelper::Log("Snap CreateVa Request Header: " . json_encode(array_merge($header, ["X-SIGNATURE" => "***********"]), JSON_UNESCAPED_SLASHES));
@@ -164,7 +164,7 @@ class NonSnapToSnapController extends Controller
         //region send inquiry status va with snap format
         $snapInquiryStatusUrl = "https://snaptest.bayarind.id$relativePath";
         CommonHelper::Log("Snap InquiryStatus Request URL: " . $snapInquiryStatusUrl);
-        if (env('APP_ENV') == "production"){
+        if (env('APP_ENV') != "production"){
             CommonHelper::Log("Snap InquiryStatus Request Header: " . json_encode($header, JSON_UNESCAPED_SLASHES));
         }else{
             CommonHelper::Log("Snap InquiryStatus Request Header: " . json_encode(array_merge($header, ["X-SIGNATURE" => "***********"]), JSON_UNESCAPED_SLASHES));
@@ -251,7 +251,7 @@ class NonSnapToSnapController extends Controller
         //region send inquiry status va with snap format
         $snaDeleteVaUrl = "https://snaptest.bayarind.id$relativePath";
         CommonHelper::Log("Snap DeleteVA Request URL: " . $snaDeleteVaUrl);
-        if (env('APP_ENV') == "production"){
+        if (env('APP_ENV') != "production"){
             CommonHelper::Log("Snap DeleteVA Request Header: " . json_encode($header, JSON_UNESCAPED_SLASHES));
         }else{
             CommonHelper::Log("Snap DeleteVA Request Header: " . json_encode(array_merge($header, ["X-SIGNATURE" => "***********"]), JSON_UNESCAPED_SLASHES));

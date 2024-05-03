@@ -134,17 +134,7 @@ class NonSnapToSnapController extends Controller
             return response()->json(
                 [
                     "channelId" => ($request->input("channelId") ?? ""),
-                    "queryResponse" => [
-                        "transactionNo" => "",
-                        "transactionAmount" => null,
-                        "transactionDate" => "",
-                        "transactionStatus" => "02",
-                        "transactionMessage" => "General Error",
-                        "paymentDate" => "",
-                        "insertId" => "",
-                        "inquiryReqId" => "",
-                        "paymentReqId" => ""
-                    ]
+                    "queryResponse" => "Invalid configurator"
                 ]
             );
         }
@@ -190,17 +180,7 @@ class NonSnapToSnapController extends Controller
         return response()->json(
             [
                 "channelId" => ($request->input("channelId") ?? ""),
-                "queryResponse" => [
-                    "transactionNo" => "",
-                    "transactionAmount" => null,
-                    "transactionDate" => "",
-                    "transactionStatus" => "02",
-                    "transactionMessage" => "Transaction not found",
-                    "paymentDate" => "",
-                    "insertId" => "",
-                    "inquiryReqId" => "",
-                    "paymentReqId" => ""
-                ]
+                "queryResponse" => "External Server Error"
             ]
         );
     }

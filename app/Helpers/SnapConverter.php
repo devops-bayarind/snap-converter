@@ -294,7 +294,7 @@ class SnapConverter
         //prepare query response non snap
         $transactionNo = "";
         $transactionDate = "";
-        $transactionStatus = "02";
+        $transactionStatus = "04";
         $transactionAmount = null;
         $transactionMessage = "";
         $insertId = "";
@@ -315,6 +315,22 @@ class SnapConverter
         //transaction not found
         if (($snapResponse["responseCode"] ?? "") == "4042601") {
             $transactionMessage = "Transaction not found";
+            return [
+                "channelId" => ($request->input("channelId") ?? ""),
+                "queryResponse" => [
+                    [
+                        "transactionNo" => $transactionNo,
+                        "transactionAmount" => $transactionAmount,
+                        "transactionDate" => $transactionDate,
+                        "transactionStatus" => $transactionStatus,
+                        "transactionMessage" => $transactionMessage,
+                        "paymentDate" => $paymentDate,
+                        "insertId" => $insertId,
+                        "inquiryReqId" => $inquiryReqId,
+                        "paymentReqId" => $paymentReqId
+                    ]
+                ],
+            ];
         } else if (($snapResponse["responseCode"] ?? "") == "2002600") {
             $transactionAmount = intval($snapResponse["virtualAccountData"]["totalAmount"]["value"]) . "";
             $transactionDate = empty(($snapResponse["virtualAccountData"]["transactionDate"] ?? "")) ? "" : date('Y-m-d H:i:s', strtotime($snapResponse["virtualAccountData"]["transactionDate"]));
@@ -333,23 +349,29 @@ class SnapConverter
                 $transactionStatus = "04";
                 $transactionMessage = "Technical Problem";
             }
+            return [
+                "channelId" => ($request->input("channelId") ?? ""),
+                "queryResponse" => [
+                    [
+                        "transactionNo" => $transactionNo,
+                        "transactionAmount" => $transactionAmount,
+                        "transactionDate" => $transactionDate,
+                        "transactionStatus" => $transactionStatus,
+                        "transactionMessage" => $transactionMessage,
+                        "paymentDate" => $paymentDate,
+                        "insertId" => $insertId,
+                        "inquiryReqId" => $inquiryReqId,
+                        "paymentReqId" => $paymentReqId
+                    ]
+                ],
+            ];
+        }else{
+            return [
+                "channelId" => ($request->input("channelId") ?? ""),
+                "queryResponse" => "Technical Problem"
+            ];
         }
-        return [
-            "channelId" => ($request->input("channelId") ?? ""),
-            "queryResponse" => [
-                [
-                    "transactionNo" => $transactionNo,
-                    "transactionAmount" => $transactionAmount,
-                    "transactionDate" => $transactionDate,
-                    "transactionStatus" => $transactionStatus,
-                    "transactionMessage" => $transactionMessage,
-                    "paymentDate" => $paymentDate,
-                    "insertId" => $insertId,
-                    "inquiryReqId" => $inquiryReqId,
-                    "paymentReqId" => $paymentReqId
-                ]
-            ],
-        ];
+
 
     }
 

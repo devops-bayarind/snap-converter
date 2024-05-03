@@ -13,15 +13,9 @@ class NonSnapToSnapController extends Controller
     public function createVa(Request $request)
     {
 
-        if (empty($request->input('serviceCode') ?? "")){
-            return response()->json([
-                "channelId" 		=> ($request->input('channelId') ?? ""),
-                "currency" 			=> ($request->input('currency') ?? ""),
-                "insertStatus" 		=> "01",
-                "insertMessage" 	=> "serviceCode cant be empty",
-                "insertId" 			=> "",
-                "additionalData" 	=> ""
-            ]);
+        $validateCreateVa = $this->validateCreateVa($request);
+        if (!is_null($validateCreateVa)){
+            return $validateCreateVa;
         }
 
         $authCode = hash('SHA256',
@@ -42,7 +36,6 @@ class NonSnapToSnapController extends Controller
             ]);
         }
 
-
         //convert request body from non snap to snap
         $snapRequestCreateVaBody = SnapConverter::convertRequestBodyCreateVaNonSnapToSnap($request);
 
@@ -55,7 +48,6 @@ class NonSnapToSnapController extends Controller
 
         //create string to sign
         $stringToSign = SignatureHelper::createStringToSign($httpMethod, $relativePath, $snapRequestCreateVaBody, $timeStamp);
-
 
         //load private key
         $privateKey = openssl_pkey_get_private(env('PRIVATE_KEY_PATH'));
@@ -71,13 +63,10 @@ class NonSnapToSnapController extends Controller
             ]);
         }
 
-//        $privateKey = file_get_contents(env('PRIVATE_KEY_PATH'));
-
         //generate signature
         $signature = SignatureHelper::signAsymmetricSignature($stringToSign, $privateKey);
 
         //endregion prepare signature
-
 
         $header = [
             "Content-Type" => "application/json",
@@ -306,6 +295,66 @@ class NonSnapToSnapController extends Controller
                 "transactionType" => "VOID INSERT",
             ]
         );
+    }
+
+    public function validateCreateVa(Request $request) : ?\Illuminate\Http\JsonResponse{
+        if (empty($request->input('channelId') ?? "")){
+            return response()->json([
+                "channelId" 		=> ($request->input('channelId') ?? ""),
+                "currency" 			=> ($request->input('currency') ?? ""),
+                "insertStatus" 		=> "01",
+                "insertMessage" 	=> "channelId cant be empty",
+                "insertId" 			=> "",
+                "additionalData" 	=> ""
+            ]);
+        }
+
+        if (empty($request->input('serviceCode') ?? "")){
+            return response()->json([
+                "channelId" 		=> ($request->input('channelId') ?? ""),
+                "currency" 			=> ($request->input('currency') ?? ""),
+                "insertStatus" 		=> "01",
+                "insertMessage" 	=> "serviceCode cant be empty",
+                "insertId" 			=> "",
+                "additionalData" 	=> ""
+            ]);
+        }
+
+        if (empty($request->input('transactionNo') ?? "")){
+            return response()->json([
+                "channelId" 		=> ($request->input('channelId') ?? ""),
+                "currency" 			=> ($request->input('currency') ?? ""),
+                "insertStatus" 		=> "01",
+                "insertMessage" 	=> "transactionNo cant be empty",
+                "insertId" 			=> "",
+                "additionalData" 	=> ""
+            ]);
+        }
+
+        if (empty($request->input('customerAccount') ?? "")){
+            return response()->json([
+                "channelId" 		=> ($request->input('channelId') ?? ""),
+                "currency" 			=> ($request->input('currency') ?? ""),
+                "insertStatus" 		=> "01",
+                "insertMessage" 	=> "customerAccount cant be empty",
+                "insertId" 			=> "",
+                "additionalData" 	=> ""
+            ]);
+        }
+
+        if (empty($request->input('customerName') ?? "")){
+            return response()->json([
+                "channelId" 		=> ($request->input('channelId') ?? ""),
+                "currency" 			=> ($request->input('currency') ?? ""),
+                "insertStatus" 		=> "01",
+                "insertMessage" 	=> "customerName cant be empty",
+                "insertId" 			=> "",
+                "additionalData" 	=> ""
+            ]);
+        }
+
+
+        return null;
     }
 
 

@@ -194,18 +194,13 @@ class NonSnapToSnapController extends Controller
 
     public function voidTransaction(Request $request)
     {
-        if (empty($request->input('serviceCode') ?? "")){
-            return response()->json(
-                [
-                    "channelId" => ($request->input("channelId") ?? ""),
-                    "transactionNo" => "",
-                    "transactionAmount" => "0",
-                    "transactionStatus" => "01",
-                    "transactionMessage" => "serviceCode cant be empty",
-                    "transactionType" => "VOID INSERT",
-                ]
-            );
+
+        //query status validation
+        $validateVoid = $this->validateVoidVa($request);
+        if (!is_null($validateVoid)){
+            return $validateVoid;
         }
+
         //convert request body from non snap to snap
         $snapDeleteVaRequestBody = SnapConverter::convertRequestBodyVoidVaNonSnapToSnap($request);
 
@@ -444,6 +439,51 @@ class NonSnapToSnapController extends Controller
 
 
         }
+
+        return null;
+    }
+
+    public function validateVoidVa(Request $request) : ?\Illuminate\Http\JsonResponse{
+
+        if (empty($request->input('serviceCode') ?? "")){
+            return response()->json(
+                [
+                    "channelId" => ($request->input("channelId") ?? ""),
+                    "transactionNo" => "",
+                    "transactionAmount" => "0",
+                    "transactionStatus" => "01",
+                    "transactionMessage" => "serviceCode cant be empty",
+                    "transactionType" => "VOID INSERT",
+                ]
+            );
+        }
+
+        if (empty($request->input('channelId') ?? "")){
+            return response()->json(
+                [
+                    "channelId" => ($request->input("channelId") ?? ""),
+                    "transactionNo" => "",
+                    "transactionAmount" => "0",
+                    "transactionStatus" => "01",
+                    "transactionMessage" => "channelId cant be empty",
+                    "transactionType" => "VOID INSERT",
+                ]
+            );
+        }
+
+        if (empty($request->input('transactionNo') ?? "")){
+            return response()->json(
+                [
+                    "channelId" => ($request->input("channelId") ?? ""),
+                    "transactionNo" => "",
+                    "transactionAmount" => "0",
+                    "transactionStatus" => "01",
+                    "transactionMessage" => "transactionNo cant be empty",
+                    "transactionType" => "VOID INSERT",
+                ]
+            );
+        }
+
 
         return null;
     }

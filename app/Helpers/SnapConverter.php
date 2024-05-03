@@ -114,7 +114,7 @@ class SnapConverter
                         foreach ($jsonQueryRequest as $itemQueryRequest) {
                             $listQueryRequest[] = [
                                 "trxId" => ($itemQueryRequest["transactionNo"] ?? ""),
-                                "trxDateInit" => empty(($itemQueryRequest["transactionDate"] ?? "")) ? "" : date('c', strtotime($jsonQueryRequest[0]["transactionDate"]))
+                                "trxDateInit" => empty(($itemQueryRequest["transactionDate"] ?? "")) ? "" : date('c', strtotime($itemQueryRequest["transactionDate"]))
                             ];
                         }
                         $snapInquiryRequestBody["additionalInfo"]["queryRequest"] = $listQueryRequest;
@@ -347,9 +347,9 @@ class SnapConverter
                 ],
             ];
         } else if (($snapResponse["responseCode"] ?? "") == "2002600") {
-            if (count(($snapResponse["virtualAccountData"]["list"] ?? [])) > 1) {
+            if (count(($snapResponse["virtualAccountData"]["additionalInfo"]["list"] ?? [])) > 1) {
                 $queryResponse = [];
-                foreach ($snapResponse["virtualAccountData"]["list"] as $itemQueryStatus) {
+                foreach ($snapResponse["virtualAccountData"]["additionalInfo"]["list"] as $itemQueryStatus) {
                     $queryResponse[]=self::convertQueryFromSnapToNonSnap(
                         $itemQueryStatus,
                         $itemQueryStatus["trxId"],

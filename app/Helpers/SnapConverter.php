@@ -38,8 +38,10 @@ class SnapConverter
             ],
             "billDetails" => [
                 [
-                    "indonesia" => ($request->input("description") ?? ""),
-                    "english" => ($request->input("description") ?? "")
+                    "billDescription" => [
+                        "indonesia" => ($request->input("description") ?? ""),
+                        "english" => ($request->input("description") ?? "")
+                    ]
                 ]
             ],
             "expiredDate" => (empty(($request->input("transactionExpire") ?? ""))) ? '' : date('c', strtotime($request->input("transactionExpire"))),
@@ -48,7 +50,7 @@ class SnapConverter
         if ($request->has("freeTexts")) {
             if (is_array($request->input('freeTexts'))) {
                 $snapCreateVaRequestBody["additionalInfo"]["freeTexts"] = $request->input('freeTexts');
-            }else if (is_string($request->input('freeTexts'))){
+            } else if (is_string($request->input('freeTexts'))) {
                 $jsonFreeText = json_decode($request->input('freeTexts') ?? "");
                 if ($jsonFreeText) {
                     $snapCreateVaRequestBody["additionalInfo"]["freeTexts"] = $jsonFreeText;
@@ -63,8 +65,8 @@ class SnapConverter
         }
 
         if ($request->has("additionalData")) {
-            if (is_string($request->input('additionalData'))){
-                if (!empty($request->input('additionalData'))){
+            if (is_string($request->input('additionalData'))) {
+                if (!empty($request->input('additionalData'))) {
                     $snapCreateVaRequestBody["additionalInfo"]["additionalData"] = $request->input('additionalData');
                 }
             }

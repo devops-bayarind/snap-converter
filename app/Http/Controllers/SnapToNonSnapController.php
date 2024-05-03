@@ -29,6 +29,10 @@ class SnapToNonSnapController extends Controller
 
         //start payment to non snap
         $nonSnapUrlPayment = env('NON_SNAP_PAYMENT_FLAG_URL', '');
+
+        if (!empty(($snapRequestBody["additionalInfo"]["converterApp"] ?? ""))){
+            $nonSnapUrlPayment = $snapRequestBody["additionalInfo"]["converterApp"];
+        }
         CommonHelper::Log("Non Snap Payment URL: ".$nonSnapUrlPayment);
 
         if (empty($nonSnapUrlPayment)){

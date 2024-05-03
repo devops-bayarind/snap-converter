@@ -114,6 +114,13 @@ class NonSnapToSnapController extends Controller
 
     public function queryStatus(Request $request)
     {
+
+        //query status validation
+        $validateQueryStatus = $this->validateQueryVa($request);
+        if (!is_null($validateQueryStatus)){
+            return $validateQueryStatus;
+        }
+
         //convert request body from non snap to snap
         $snapRequestInquiryStatusBody = SnapConverter::convertRequestBodyInquiryStatusVaNonSnapToSnap($request);
 
@@ -371,6 +378,29 @@ class NonSnapToSnapController extends Controller
 
         return null;
     }
+
+    public function validateQueryVa(Request $request) : ?\Illuminate\Http\JsonResponse{
+        if (empty($request->input('channelId') ?? "")){
+            return response()->json(
+                [
+                    "channelId" => ($request->input("channelId") ?? ""),
+                    "queryResponse" => "channelId cant be empty"
+                ]
+            );
+        }
+
+        if (empty($request->input('serviceCode') ?? "")){
+            return response()->json(
+                [
+                    "channelId" => ($request->input("channelId") ?? ""),
+                    "queryResponse" => "serviceCode cant be empty"
+                ]
+            );
+        }
+
+        return null;
+    }
+
 
 
 }

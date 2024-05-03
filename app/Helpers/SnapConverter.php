@@ -417,6 +417,9 @@ class SnapConverter
         } else if ($snapTrxStatus == "06") {
             $transactionStatus = "04";
             $transactionMessage = "Technical Problem";
+        } else if ($snapTrxStatus == "07") {
+            $transactionStatus = "02";
+            $transactionMessage = "Transaction Not Found";
         }
         return [
             "transactionNo" => $transactionNo,

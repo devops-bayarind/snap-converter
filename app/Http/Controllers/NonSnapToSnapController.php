@@ -432,14 +432,14 @@ class NonSnapToSnapController extends Controller
                     ]
                 );
             }
-            if (empty(($jsonQueryRequest[0]["transactionNo"] ?? "")) || empty(($jsonQueryRequest[0]["transactionDate"] ?? ""))){
-                return response()->json(
-                    [
-                        "channelId" => ($request->input("channelId") ?? ""),
-                        "queryResponse" => "Invalid queryRequest Format"
-                    ]
-                );
-            }
+//            if (empty(($jsonQueryRequest[0]["transactionNo"] ?? "")) || empty(($jsonQueryRequest[0]["transactionDate"] ?? ""))){
+//                return response()->json(
+//                    [
+//                        "channelId" => ($request->input("channelId") ?? ""),
+//                        "queryResponse" => "Invalid queryRequest Format"
+//                    ]
+//                );
+//            }
 
 
 

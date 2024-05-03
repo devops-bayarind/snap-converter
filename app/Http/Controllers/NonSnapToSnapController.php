@@ -42,6 +42,7 @@ class NonSnapToSnapController extends Controller
         //create string to sign
         $stringToSign = SignatureHelper::createStringToSign($httpMethod, $relativePath, $snapRequestCreateVaBody, $timeStamp);
 
+
         //load private key
         $privateKey = openssl_pkey_get_private(env('PRIVATE_KEY_PATH'));
         if (!$privateKey){

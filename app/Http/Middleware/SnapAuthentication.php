@@ -47,7 +47,7 @@ class SnapAuthentication
                 "responseMessage" => "Unauthorized Signature",
             ]);
         }
-        
+
 
         if (!SignatureHelper::verifyAsymmetricSignature($signature,$stringToSign,$publicKey)){
             return response()->json([

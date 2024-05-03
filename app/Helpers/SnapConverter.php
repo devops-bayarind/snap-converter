@@ -323,13 +323,7 @@ class SnapConverter
         //prepare query response non snap
         $transactionNo = "";
         $transactionDate = "";
-        $transactionStatus = "04";
         $transactionAmount = null;
-        $transactionMessage = "";
-        $insertId = "";
-        $paymentDate = "";
-        $inquiryReqId = "";
-        $paymentReqId = "";
 
 
         $jsonQueryRequest = json_decode($request->input("queryRequest"), true);
@@ -354,10 +348,6 @@ class SnapConverter
                         "transactionDate" => $transactionDate,
                         "transactionStatus" => $transactionStatus,
                         "transactionMessage" => $transactionMessage,
-                        "paymentDate" => $paymentDate,
-                        "insertId" => $insertId,
-                        "inquiryReqId" => $inquiryReqId,
-                        "paymentReqId" => $paymentReqId
                     ]
                 ],
             ];
@@ -368,8 +358,7 @@ class SnapConverter
                     $queryResponse[] = self::convertQueryFromSnapToNonSnap(
                         $itemQueryStatus,
                         $itemQueryStatus["trxId"],
-                        $itemQueryStatus["trxStatus"],
-                        $itemQueryStatus["insertId"],
+                        $itemQueryStatus["trxStatus"]
                     );
                 }
             } else {
@@ -378,7 +367,6 @@ class SnapConverter
                         $snapResponse["virtualAccountData"],
                         $transactionNo,
                         $snapResponse["virtualAccountData"]["additionalInfo"]["trxStatus"],
-                        ($jsonQueryRequest[0]["transactionNo"] ?? "")
                     )
                 ];
             }
@@ -402,25 +390,11 @@ class SnapConverter
 
     }
 
-    static function convertQueryFromSnapToNonSnap($snapQueryResponse, $transactionNo, $snapTrxStatus, $insertId)
+    static function convertQueryFromSnapToNonSnap($snapQueryResponse, $transactionNo, $snapTrxStatus)
     {
         $transactionAmount = intval($snapQueryResponse["totalAmount"]["value"]) . "";
         $transactionDate = empty(($snapQueryResponse["transactionDate"] ?? "")) ? "" : date('Y-m-d H:i:s', strtotime($snapQueryResponse["transactionDate"]));
-//        $insertId = $snapQueryResponse["additionalInfo"]["insertId"];
-        $paymentDate = empty(($snapQueryResponse["trxDateTime"] ?? "")) ? "" : date('Y-m-d H:i:s', strtotime($snapQueryResponse["trxDateTime"]));
-        $inquiryReqId = $snapQueryResponse["inquiryRequestId"];
-        $paymentReqId = $snapQueryResponse["paymentRequestId"];
-        //pending payment
-//        if ($snapResponse["virtualAccountData"]["additionalInfo"]["trxStatus"] == "00") {
-//            $transactionStatus = "00";
-//            $transactionMessage = "Success";
-//        } else if ($snapResponse["virtualAccountData"]["additionalInfo"]["trxStatus"] == "03") {
-//            $transactionStatus = "03";
-//            $transactionMessage = "There is no payment in this transaction";
-//        } else if ($snapResponse["virtualAccountData"]["additionalInfo"]["trxStatus"] == "06") {
-//            $transactionStatus = "04";
-//            $transactionMessage = "Technical Problem";
-//        }
+
         $transactionStatus = "04";
         $transactionMessage = "Technical Problem";
         if ($snapTrxStatus == "00") {
@@ -442,10 +416,6 @@ class SnapConverter
             "transactionDate" => $transactionDate,
             "transactionStatus" => $transactionStatus,
             "transactionMessage" => $transactionMessage,
-            "paymentDate" => $paymentDate,
-            "insertId" => $insertId,
-            "inquiryReqId" => $inquiryReqId,
-            "paymentReqId" => $paymentReqId
         ];
     }
 

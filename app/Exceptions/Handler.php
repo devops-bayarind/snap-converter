@@ -35,19 +35,17 @@ class Handler extends ExceptionHandler
      */
     public function register()
     {
-        $this->reportable(function (Throwable $e) {
-            $this->renderable(function (Throwable $e) {
-                //
-                Log::info("Internal Error",[
-                    "error" => $e->getMessage(),
-                    "code" => $e->getCode(),
-                    "trace" => $e->getTrace(),
-                ]);
-                return response()->json([
-                    "responseCode"=>  "5000001",
-                    "responseMessage" => "Internal Server Error"
-                ], 200, ['X-TIMESTAMP' => date('c')]);
-            });
+        $this->renderable(function (Throwable $e) {
+            //
+            Log::info("Internal Error",[
+                "error" => $e->getMessage(),
+                "code" => $e->getCode(),
+                "trace" => $e->getTrace(),
+            ]);
+            return response()->json([
+                "responseCode"=>  "5000001",
+                "responseMessage" => "Internal Server Error"
+            ], 200, ['X-TIMESTAMP' => date('c')]);
         });
     }
 }

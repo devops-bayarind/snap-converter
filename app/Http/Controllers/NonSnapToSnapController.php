@@ -342,7 +342,7 @@ class NonSnapToSnapController extends Controller
             ]);
         }
 
-        if (trim(($request->input('customerAccount') ?? "")) == ""){
+        if (trim(($request->input('transactionAmount') ?? "")) == ""){
             return response()->json([
                 "channelId" 		=> ($request->input('channelId') ?? ""),
                 "currency" 			=> ($request->input('currency') ?? ""),

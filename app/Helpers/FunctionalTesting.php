@@ -38,6 +38,17 @@ class FunctionalTesting
             }
         }
 
+        //mockup response invalid amount
+        $invalidAmountMockupList = config("functionaltest.invalid_amount");
+        if (!empty($invalidAmountMockupList)){
+            if (in_array($customerNo, $invalidAmountMockupList)){
+                return [
+                    "responseCode"=>  "404" . $apiServiceCode . "13",
+                    "responseMessage" => "Invalid Amount"
+                ];
+            }
+        }
+
         return null;
     }
 }

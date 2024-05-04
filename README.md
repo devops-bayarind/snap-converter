@@ -4,7 +4,7 @@
 ## About Bayarind Snap Converter
 
 This project was created for merchants to simplify the SNAP implementation process in Bayarind.
-This project can be used and run by merchants as middleware from non snap api to snap api in merchant scope, or you just want to read this source code to help you as a reference to change parameters from non-snap api (single integration) to snap api
+This project for help you as a reference to change parameters from non-snap api (single integration) to snap api
 
 ## Snap Converter Information
 

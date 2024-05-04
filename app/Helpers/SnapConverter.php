@@ -45,6 +45,9 @@ class SnapConverter
                 ]
             ],
             "expiredDate" => (empty(($request->input("transactionExpire") ?? ""))) ? '' : date('c', strtotime($request->input("transactionExpire"))),
+            "additionalInfo"=>[
+                "passApp" => strtolower(hash('sha256', env('BAYARIND_SECRET_KEY')))
+            ]
         ];
 
         if ($request->has("freeTexts")) {
@@ -105,7 +108,7 @@ class SnapConverter
         if ($binLength > 0 && (empty($virtualAccountNo) || empty($customerNo) || empty($partnerServiceId))) {
             $randNumber = substr(str_shuffle("0123456789"), 0, $binLength);
             $partnerServiceId = str_pad($randNumber, 8, " ", STR_PAD_LEFT);
-            $customerNo = str_pad(rand(0, pow(10, 16) - 1), 16, '0', STR_PAD_LEFT);
+            $customerNo = str_pad(rand(0, pow(10, 11) - 1), 11, '0', STR_PAD_LEFT);
             $virtualAccountNo = $partnerServiceId . $customerNo;
         }
 
@@ -115,6 +118,7 @@ class SnapConverter
             "virtualAccountNo" => $virtualAccountNo,
             "inquiryRequestId" => $inquiryRequestId,
         ];
+
 
         if (!empty(($request->input("queryRequest") ?? ""))) {
             $jsonQueryRequest = json_decode($request->input("queryRequest"), true);
@@ -141,6 +145,7 @@ class SnapConverter
 
             }
         }
+        $snapInquiryRequestBody["additionalInfo"]["passApp"] = strtolower(hash('sha256', env('BAYARIND_SECRET_KEY')));
 
         return $snapInquiryRequestBody;
 
@@ -170,7 +175,7 @@ class SnapConverter
         if ($binLength > 0 && (empty($virtualAccountNo) || empty($customerNo) || empty($partnerServiceId))) {
             $randNumber = substr(str_shuffle("0123456789"), 0, $binLength);
             $partnerServiceId = str_pad($randNumber, 8, " ", STR_PAD_LEFT);
-            $customerNo = str_pad(rand(0, pow(10, 16) - 1), 16, '0', STR_PAD_LEFT);
+            $customerNo = str_pad(rand(0, pow(10, 11) - 1), 11, '0', STR_PAD_LEFT);
             $virtualAccountNo = $partnerServiceId . $customerNo;
         }
 
@@ -179,6 +184,9 @@ class SnapConverter
             "customerNo" => $customerNo,
             "virtualAccountNo" => $virtualAccountNo,
             "trxId" => ($request->input("transactionNo") ?? ""),
+            "additionalInfo"=>[
+                "passApp" => strtolower(hash('sha256', env('BAYARIND_SECRET_KEY')))
+            ]
         ];
 
     }

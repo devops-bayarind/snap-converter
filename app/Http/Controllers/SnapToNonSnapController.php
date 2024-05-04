@@ -28,15 +28,26 @@ class SnapToNonSnapController extends Controller
         }
 
         //start payment to non snap
-        $nonSnapUrlPayment = env('NON_SNAP_PAYMENT_FLAG_URL', '');
+        $nonSnapUrlPayment = "";
+        if (!empty(($snapRequestBody["additionalInfo"]["idApp"] ?? ""))){
+            $paymentFlag = CommonHelper::decrypt($snapRequestBody["additionalInfo"]["idApp"], env('BAYARIND_SECRET_KEY'));
+            if ($paymentFlag){
+                CommonHelper::Log("Failed decrypt non snap url payment");
+                $nonSnapUrlPayment = urldecode($paymentFlag);
+            }
 
-        if (!empty(($snapRequestBody["additionalInfo"]["converterApp"] ?? ""))){
-            $nonSnapUrlPayment = urldecode($snapRequestBody["additionalInfo"]["converterApp"]);
+        }
+        if (empty($nonSnapUrlPayment)){
+            CommonHelper::Log("Empty non snap url payment");
+            return response()->json([
+                "responseCode"=>  "404" . $apiServiceCode . "02",
+                "responseMessage" => "Invalid Routing"
+            ], 200, ['X-TIMESTAMP' => date('c')]);
         }
         CommonHelper::Log("Non Snap Payment URL: ".$nonSnapUrlPayment);
 
         if (empty($nonSnapUrlPayment)){
-            CommonHelper::Log("Empty non snap url inquiry");
+            CommonHelper::Log("Empty non snap url payment");
             return response()->json([
                 "responseCode"=>  "500" . $apiServiceCode . "01",
                 "responseMessage" => "Internal Server Error"
@@ -123,6 +134,21 @@ class SnapToNonSnapController extends Controller
         $apiServiceCode = "25";
         // validate partnerServiceId
         $reqBody = $request->all();
+
+        if (empty($reqBody["additionalInfo"]["passApp"])){
+            return response()->json([
+                "responseCode" => "401" . $apiServiceCode . "00",
+                "responseMessage" => "Unauthorized. Client Forbidden Access API",
+            ], 200, ['X-TIMESTAMP' => date('c')]);
+        }
+
+        if (strtolower(hash('sha256', env('BAYARIND_SECRET_KEY'))) != $reqBody["additionalInfo"]["passApp"]){
+            return response()->json([
+                "responseCode" => "401" . $apiServiceCode . "00",
+                "responseMessage" => "Unauthorized. Client Forbidden Access API",
+            ], 200, ['X-TIMESTAMP' => date('c')]);
+        }
+
         if (empty(($reqBody["partnerServiceId"] ?? ""))) {
             return response()->json([
                 "responseCode" => "400" . $apiServiceCode . "02",

@@ -477,7 +477,7 @@ class SnapConverter
             "currency" => $snapParam["paidAmount"]["currency"],
             "transactionNo" => $snapParam["trxId"],
             "transactionAmount" => intval($snapParam["paidAmount"]["value"]),
-            "transactionDate" => date('Y-m-d H:i:s', empty(($request["trxDateTime"] ?? "") ? time() : strtotime($request["trxDateTime"]))),
+            "transactionDate" => empty($snapParam["trxDateTime"] ?? "") ? "": date('Y-m-d H:i:s', strtotime($snapParam["trxDateTime"])),
             "channelType" => ($snapParam["channelCode"] ?? ""),
             "transactionStatus" => "00",
             "transactionMessage" => "Approved",

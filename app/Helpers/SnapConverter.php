@@ -283,7 +283,7 @@ class SnapConverter
                     ],
                     "additionalInfo" => [
                         "trxId" => $nonSnapResponse["transactionNo"],
-                        "expiredDate" => $nonSnapResponse["transactionExpire"]
+                        "expiredDate" => date('c', strtotime($nonSnapResponse["transactionExpire"]))
                     ]
                 ]
             ];
@@ -513,7 +513,7 @@ class SnapConverter
 
         $nonSnapInquiryParam = [
             "currency" => $currency,
-            "transactionDate" => date('Y-m-d H:i:s', empty(($request["trxDateInit"] ?? "") ? time() : strtotime($request["trxDateInit"]))),
+            "transactionDate" => empty($snapParam["trxDateInit"] ?? "") ? "": date('Y-m-d H:i:s', strtotime($snapParam["trxDateInit"])),
             "channelType" => $snapParam["channelCode"] ?? "",
             "customerAccount" => trim($snapParam["virtualAccountNo"]),
             "inquiryReffId" => $snapParam["inquiryRequestId"],

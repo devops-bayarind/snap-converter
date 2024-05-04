@@ -49,7 +49,7 @@ class SnapToNonSnapController extends Controller
         //convert incoming request body(SNAP) to Non Snap
         $nonSnapRequestBody = SnapConverter::convertRequestBodyPaymentSnapToNonSnap($request);
         CommonHelper::Log("Non Snap Payment Request Form: " . json_encode($nonSnapRequestBody, JSON_UNESCAPED_SLASHES));
-        
+
         try {
             $response = Http::asForm()->post($nonSnapUrlPayment, $nonSnapRequestBody);
             CommonHelper::Log("Non Snap Payment Response: " . $response);

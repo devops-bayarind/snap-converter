@@ -20,57 +20,56 @@ class SnapToNonSnapController extends Controller
             return $validatePaymentRequest;
         }
 
-        if (env("APP_ENV", "") != "production"){
+        if (env("APP_ENV", "") != "production") {
             $mockUpSnapResponse = FunctionalTesting::mockUpSnapResponse($snapRequestBody["customerNo"], $apiServiceCode);
-            if (!is_null($mockUpSnapResponse)){
+            if (!is_null($mockUpSnapResponse)) {
                 return response()->json($mockUpSnapResponse, 200, ['X-TIMESTAMP' => date('c')]);
             }
         }
 
         //start payment to non snap
         $nonSnapUrlPayment = "";
-        if (!empty(($snapRequestBody["additionalInfo"]["idApp"] ?? ""))){
+        if (!empty(($snapRequestBody["additionalInfo"]["idApp"] ?? ""))) {
             $paymentFlag = CommonHelper::decrypt($snapRequestBody["additionalInfo"]["idApp"], env('BAYARIND_SECRET_KEY'));
-            if ($paymentFlag){
+            if ($paymentFlag) {
                 $nonSnapUrlPayment = urldecode($paymentFlag);
-            }else{
+            } else {
                 CommonHelper::Log("Failed decrypt non snap url payment");
             }
-
         }
-        if (empty($nonSnapUrlPayment)){
+        CommonHelper::Log("Non Snap Payment URL: " . $nonSnapUrlPayment);
+        if (empty($nonSnapUrlPayment)) {
             CommonHelper::Log("Empty non snap url payment");
             return response()->json([
-                "responseCode"=>  "404" . $apiServiceCode . "02",
+                "responseCode" => "404" . $apiServiceCode . "02",
                 "responseMessage" => "Invalid Routing"
-            ], 200, ['X-TIMESTAMP' => date('c')]);
-        }
-        CommonHelper::Log("Non Snap Payment URL: ".$nonSnapUrlPayment);
-
-        if (empty($nonSnapUrlPayment)){
-            CommonHelper::Log("Empty non snap url payment");
-            return response()->json([
-                "responseCode"=>  "500" . $apiServiceCode . "01",
-                "responseMessage" => "Internal Server Error"
             ], 200, ['X-TIMESTAMP' => date('c')]);
         }
 
         //convert incoming request body(SNAP) to Non Snap
         $nonSnapRequestBody = SnapConverter::convertRequestBodyPaymentSnapToNonSnap($request);
-        CommonHelper::Log("Non Snap Payment Request Form: ".json_encode($nonSnapRequestBody, JSON_UNESCAPED_SLASHES));
+        CommonHelper::Log("Non Snap Payment Request Form: " . json_encode($nonSnapRequestBody, JSON_UNESCAPED_SLASHES));
+        
+        try {
+            $response = Http::asForm()->post($nonSnapUrlPayment, $nonSnapRequestBody);
+            CommonHelper::Log("Non Snap Payment Response: " . $response);
+            if ($response->successful()) {
+                $nonSnapResponse = $response->json();
 
-        $response = Http::asForm()->post($nonSnapUrlPayment, $nonSnapRequestBody);
-        CommonHelper::Log("Non Snap Payment Response: ".$response);
-        if ($response->successful()) {
-            $nonSnapResponse = $response->json();
-
-            //convert non snap response to snap response
-            $snapResponse = SnapConverter::convertResponseBodyPaymentNonSnapToSnap($snapRequestBody,$nonSnapResponse);
-            return response()->json($snapResponse, 200, ['X-TIMESTAMP' => date('c')]);
-        }else{
+                //convert non snap response to snap response
+                $snapResponse = SnapConverter::convertResponseBodyPaymentNonSnapToSnap($snapRequestBody, $nonSnapResponse);
+                return response()->json($snapResponse, 200, ['X-TIMESTAMP' => date('c')]);
+            } else {
+                return response()->json([
+                    "responseCode" => "500" . $apiServiceCode . "02",
+                    "responseMessage" => "External Server Error"
+                ], 200, ['X-TIMESTAMP' => date('c')]);
+            }
+        } catch (\Exception $exception) {
+            CommonHelper::Log("Non Snap Payment Response Exception: " . $exception->getMessage());
             return response()->json([
-                "responseCode"=>  "500" . $apiServiceCode . "01",
-                "responseMessage" => "Internal Server Error"
+                "responseCode" => "500" . $apiServiceCode . "02",
+                "responseMessage" => "External Server Error"
             ], 200, ['X-TIMESTAMP' => date('c')]);
         }
 
@@ -85,43 +84,61 @@ class SnapToNonSnapController extends Controller
             return $validateInquiryRequest;
         }
 
-        if (env("APP_ENV", "") != "production"){
+        if (env("APP_ENV", "") != "production") {
             $mockUpSnapResponse = FunctionalTesting::mockUpSnapResponse($snapRequestBody["customerNo"], $apiServiceCode);
-            if (!is_null($mockUpSnapResponse)){
+            if (!is_null($mockUpSnapResponse)) {
                 return response()->json($mockUpSnapResponse, 200, ['X-TIMESTAMP' => date('c')]);
             }
         }
 
         //start inquiry to non snap
 
-        $nonSnapUrlInquiry = env('NON_SNAP_INQUIRY_URL','');
-        CommonHelper::Log("Non Snap Inquiry URL: ".$nonSnapUrlInquiry);
-
-        if (empty($nonSnapUrlInquiry)){
+        $nonSnapUrlInquiry = "";
+        if (!empty(($snapRequestBody["additionalInfo"]["idApp"] ?? ""))) {
+            $paymentFlag = CommonHelper::decrypt($snapRequestBody["additionalInfo"]["idApp"], env('BAYARIND_SECRET_KEY'));
+            if ($paymentFlag) {
+                $nonSnapUrlInquiry = urldecode($paymentFlag);
+            } else {
+                CommonHelper::Log("Failed decrypt non snap url inquiry");
+            }
+        }
+        CommonHelper::Log("Non Snap Inquiry URL: " . $nonSnapUrlInquiry);
+        if (empty($nonSnapUrlInquiry)) {
             CommonHelper::Log("Empty non snap url inquiry");
             return response()->json([
-                "responseCode"=>  "500" . $apiServiceCode . "01",
-                "responseMessage" => "Internal Server Error"
+                "responseCode" => "404" . $apiServiceCode . "02",
+                "responseMessage" => "Invalid Routing"
             ], 200, ['X-TIMESTAMP' => date('c')]);
         }
 
+
         //convert incoming request body(SNAP) to Non Snap
         $nonSnapRequestBody = SnapConverter::convertRequestBodyInquirySnapToNonSnap($request);
-        CommonHelper::Log("Non Snap Inquiry Request Form: ".json_encode($nonSnapRequestBody, JSON_UNESCAPED_SLASHES));
+        CommonHelper::Log("Non Snap Inquiry Request Form: " . json_encode($nonSnapRequestBody, JSON_UNESCAPED_SLASHES));
 
 
-        $response = Http::asForm()->post($nonSnapUrlInquiry, $nonSnapRequestBody);
-        CommonHelper::Log("Non Snap Inquiry Response: ".$response->body());
-        if ($response->successful()) {
-            $nonSnapResponse = $response->json();
+        try {
+            $response = Http::withOptions([
+                'http_errors' => false,
+            ])->asForm()->post($nonSnapUrlInquiry, $nonSnapRequestBody);
+            CommonHelper::Log("Non Snap Inquiry Response: " . $response->body());
+            if ($response->successful()) {
+                $nonSnapResponse = $response->json();
 
-            //convert non snap response to snap response
-            $snapResponse = SnapConverter::convertResponseBodyInquiryNonSnapToSnap($snapRequestBody,$nonSnapResponse);
-            return response()->json($snapResponse, 200, ['X-TIMESTAMP' => date('c')]);
-        }else{
+                //convert non snap response to snap response
+                $snapResponse = SnapConverter::convertResponseBodyInquiryNonSnapToSnap($snapRequestBody, $nonSnapResponse);
+                return response()->json($snapResponse, 200, ['X-TIMESTAMP' => date('c')]);
+            } else {
+                return response()->json([
+                    "responseCode" => "500" . $apiServiceCode . "02",
+                    "responseMessage" => "External Server Error"
+                ], 200, ['X-TIMESTAMP' => date('c')]);
+            }
+        } catch (\Exception $exception) {
+            CommonHelper::Log("Non Snap Inquiry Response Exception: " . $exception->getMessage());
             return response()->json([
-                "responseCode"=>  "500" . $apiServiceCode . "01",
-                "responseMessage" => "Internal Server Error"
+                "responseCode" => "500" . $apiServiceCode . "02",
+                "responseMessage" => "External Server Error"
             ], 200, ['X-TIMESTAMP' => date('c')]);
         }
 
@@ -136,14 +153,14 @@ class SnapToNonSnapController extends Controller
         // validate partnerServiceId
         $reqBody = $request->all();
 
-        if (empty($reqBody["additionalInfo"]["passApp"])){
+        if (empty($reqBody["additionalInfo"]["passApp"])) {
             return response()->json([
                 "responseCode" => "401" . $apiServiceCode . "00",
                 "responseMessage" => "Unauthorized. Client Forbidden Access API",
             ], 200, ['X-TIMESTAMP' => date('c')]);
         }
 
-        if (strtolower(hash('sha256', env('BAYARIND_SECRET_KEY'))) != $reqBody["additionalInfo"]["passApp"]){
+        if (strtolower(hash('sha256', env('BAYARIND_SECRET_KEY'))) != $reqBody["additionalInfo"]["passApp"]) {
             return response()->json([
                 "responseCode" => "401" . $apiServiceCode . "00",
                 "responseMessage" => "Unauthorized. Client Forbidden Access API",
@@ -276,6 +293,21 @@ class SnapToNonSnapController extends Controller
         $apiServiceCode = "24";
         // validate partnerServiceId
         $reqBody = $request->all();
+
+        if (empty($reqBody["additionalInfo"]["passApp"])) {
+            return response()->json([
+                "responseCode" => "401" . $apiServiceCode . "00",
+                "responseMessage" => "Unauthorized. Client Forbidden Access API",
+            ], 200, ['X-TIMESTAMP' => date('c')]);
+        }
+
+        if (strtolower(hash('sha256', env('BAYARIND_SECRET_KEY'))) != $reqBody["additionalInfo"]["passApp"]) {
+            return response()->json([
+                "responseCode" => "401" . $apiServiceCode . "00",
+                "responseMessage" => "Unauthorized. Client Forbidden Access API",
+            ], 200, ['X-TIMESTAMP' => date('c')]);
+        }
+
         if (empty(($reqBody["partnerServiceId"] ?? ""))) {
             return response()->json([
                 "responseCode" => "400" . $apiServiceCode . "02",
@@ -348,14 +380,12 @@ class SnapToNonSnapController extends Controller
             ], 200, ['X-TIMESTAMP' => date('c')]);
         }
 
-        if (!CommonHelper::isISO8601Date($request['trxDateInit'])){
+        if (!CommonHelper::isISO8601Date($request['trxDateInit'])) {
             return response()->json([
                 "responseCode" => "400" . $apiServiceCode . "01",
                 "responseMessage" => "Invalid field format trxDateInit",
             ], 200, ['X-TIMESTAMP' => date('c')]);
         }
-
-
 
 
         return null;

@@ -32,8 +32,9 @@ class SnapToNonSnapController extends Controller
         if (!empty(($snapRequestBody["additionalInfo"]["idApp"] ?? ""))){
             $paymentFlag = CommonHelper::decrypt($snapRequestBody["additionalInfo"]["idApp"], env('BAYARIND_SECRET_KEY'));
             if ($paymentFlag){
-                CommonHelper::Log("Failed decrypt non snap url payment");
                 $nonSnapUrlPayment = urldecode($paymentFlag);
+            }else{
+                CommonHelper::Log("Failed decrypt non snap url payment");
             }
 
         }

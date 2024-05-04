@@ -108,7 +108,11 @@ class SnapConverter
         if ($binLength > 0 && (empty($virtualAccountNo) || empty($customerNo) || empty($partnerServiceId))) {
             $randNumber = substr(str_shuffle("0123456789"), 0, $binLength);
             $partnerServiceId = str_pad($randNumber, 8, " ", STR_PAD_LEFT);
-            $customerNo = str_pad(rand(0, pow(10, 11) - 1), 11, '0', STR_PAD_LEFT);
+            $customerNoLength = 11;
+            if ($serviceCode == "1074"){
+                $customerNoLength = 12;
+            }
+            $customerNo = str_pad(rand(0, pow(10, $customerNoLength) - 1), $customerNoLength, '0', STR_PAD_LEFT);
             $virtualAccountNo = $partnerServiceId . $customerNo;
         }
 
@@ -175,7 +179,11 @@ class SnapConverter
         if ($binLength > 0 && (empty($virtualAccountNo) || empty($customerNo) || empty($partnerServiceId))) {
             $randNumber = substr(str_shuffle("0123456789"), 0, $binLength);
             $partnerServiceId = str_pad($randNumber, 8, " ", STR_PAD_LEFT);
-            $customerNo = str_pad(rand(0, pow(10, 11) - 1), 11, '0', STR_PAD_LEFT);
+            $customerNoLength = 11;
+            if ($serviceCode == "1074"){
+                $customerNoLength = 12;
+            }
+            $customerNo = str_pad(rand(0, pow(10, $customerNoLength) - 1), $customerNoLength, '0', STR_PAD_LEFT);
             $virtualAccountNo = $partnerServiceId . $customerNo;
         }
 

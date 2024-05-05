@@ -14,7 +14,7 @@ class NonSnapToSnapController extends Controller
     {
 
         $validateCreateVa = $this->validateCreateVa($request);
-        if (!is_null($validateCreateVa)){
+        if (!is_null($validateCreateVa)) {
             return $validateCreateVa;
         }
 
@@ -24,15 +24,15 @@ class NonSnapToSnapController extends Controller
             . ($request->input('channelId') ?? "")
             . (env('BAYARIND_SECRET_KEY'))
         );
-        if(empty(($request->input('authCode') ?? "")) || ($request->input('authCode') ?? "") != $authCode){
+        if (empty(($request->input('authCode') ?? "")) || ($request->input('authCode') ?? "") != $authCode) {
             CommonHelper::Log("Insert Va ['Invalid auth code']");
             return response()->json([
-                "channelId" 		=> ($request->input('channelId') ?? ""),
-                "currency" 			=> ($request->input('currency') ?? ""),
-                "insertStatus" 		=> "01",
-                "insertMessage" 	=> "Invalid auth code",
-                "insertId" 			=> "",
-                "additionalData" 	=> ""
+                "channelId" => ($request->input('channelId') ?? ""),
+                "currency" => ($request->input('currency') ?? ""),
+                "insertStatus" => "01",
+                "insertMessage" => "Invalid auth code",
+                "insertId" => "",
+                "additionalData" => ""
             ]);
         }
 
@@ -51,15 +51,15 @@ class NonSnapToSnapController extends Controller
 
         //load private key
         $privateKey = openssl_pkey_get_private(env('PRIVATE_KEY_PATH'));
-        if (!$privateKey){
+        if (!$privateKey) {
             CommonHelper::Log("Invalid Private Key");
             return response()->json([
-                "channelId" 		=> ($request->input('channelId') ?? ""),
-                "currency" 			=> ($request->input('currency') ?? ""),
-                "insertStatus" 		=> "01",
-                "insertMessage" 	=> "Your transaction cannot be processed",
-                "insertId" 			=> "",
-                "additionalData" 	=> ""
+                "channelId" => ($request->input('channelId') ?? ""),
+                "currency" => ($request->input('currency') ?? ""),
+                "insertStatus" => "01",
+                "insertMessage" => "Your transaction cannot be processed",
+                "insertId" => "",
+                "additionalData" => ""
             ]);
         }
 
@@ -81,9 +81,9 @@ class NonSnapToSnapController extends Controller
         //region send create va with snap format
         $snapCreateVaUrl = "https://snaptest.bayarind.id$relativePath";
         CommonHelper::Log("Snap CreateVa Request URL: " . $snapCreateVaUrl);
-        if (env('APP_ENV') != "production"){
+        if (env('APP_ENV') != "production") {
             CommonHelper::Log("Snap CreateVa Request Header: " . json_encode($header, JSON_UNESCAPED_SLASHES));
-        }else{
+        } else {
             CommonHelper::Log("Snap CreateVa Request Header: " . json_encode(array_merge($header, ["X-SIGNATURE" => "***********"]), JSON_UNESCAPED_SLASHES));
         }
 
@@ -117,7 +117,7 @@ class NonSnapToSnapController extends Controller
 
         //query status validation
         $validateQueryStatus = $this->validateQueryVa($request);
-        if (!is_null($validateQueryStatus)){
+        if (!is_null($validateQueryStatus)) {
             return $validateQueryStatus;
         }
 
@@ -136,7 +136,7 @@ class NonSnapToSnapController extends Controller
 
         //load private key
         $privateKey = openssl_pkey_get_private(env('PRIVATE_KEY_PATH'));
-        if (!$privateKey){
+        if (!$privateKey) {
             CommonHelper::Log("Invalid Private Key");
             return response()->json(
                 [
@@ -165,9 +165,9 @@ class NonSnapToSnapController extends Controller
         //region send inquiry status va with snap format
         $snapInquiryStatusUrl = "https://snaptest.bayarind.id$relativePath";
         CommonHelper::Log("Snap InquiryStatus Request URL: " . $snapInquiryStatusUrl);
-        if (env('APP_ENV') != "production"){
+        if (env('APP_ENV') != "production") {
             CommonHelper::Log("Snap InquiryStatus Request Header: " . json_encode($header, JSON_UNESCAPED_SLASHES));
-        }else{
+        } else {
             CommonHelper::Log("Snap InquiryStatus Request Header: " . json_encode(array_merge($header, ["X-SIGNATURE" => "***********"]), JSON_UNESCAPED_SLASHES));
         }
         CommonHelper::Log("Snap InquiryStatus Request Body: " . json_encode($snapRequestInquiryStatusBody, JSON_UNESCAPED_SLASHES));
@@ -197,7 +197,7 @@ class NonSnapToSnapController extends Controller
 
         //query status validation
         $validateVoid = $this->validateVoidVa($request);
-        if (!is_null($validateVoid)){
+        if (!is_null($validateVoid)) {
             return $validateVoid;
         }
 
@@ -216,7 +216,7 @@ class NonSnapToSnapController extends Controller
 
         //load private key
         $privateKey = openssl_pkey_get_private(env('PRIVATE_KEY_PATH'));
-        if (!$privateKey){
+        if (!$privateKey) {
             CommonHelper::Log("Invalid Private Key");
             return response()->json(
                 [
@@ -249,9 +249,9 @@ class NonSnapToSnapController extends Controller
         //region send inquiry status va with snap format
         $snaDeleteVaUrl = "https://snaptest.bayarind.id$relativePath";
         CommonHelper::Log("Snap DeleteVA Request URL: " . $snaDeleteVaUrl);
-        if (env('APP_ENV') != "production"){
+        if (env('APP_ENV') != "production") {
             CommonHelper::Log("Snap DeleteVA Request Header: " . json_encode($header, JSON_UNESCAPED_SLASHES));
-        }else{
+        } else {
             CommonHelper::Log("Snap DeleteVA Request Header: " . json_encode(array_merge($header, ["X-SIGNATURE" => "***********"]), JSON_UNESCAPED_SLASHES));
         }
         CommonHelper::Log("Snap DeleteVA Request Body: " . json_encode($snapDeleteVaRequestBody, JSON_UNESCAPED_SLASHES));
@@ -279,94 +279,94 @@ class NonSnapToSnapController extends Controller
         );
     }
 
-    public function validateCreateVa(Request $request) : ?\Illuminate\Http\JsonResponse{
-        if (empty($request->input('channelId') ?? "")){
+    public function validateCreateVa(Request $request): ?\Illuminate\Http\JsonResponse
+    {
+        if (empty($request->input('channelId') ?? "")) {
             return response()->json([
-                "channelId" 		=> ($request->input('channelId') ?? ""),
-                "currency" 			=> ($request->input('currency') ?? ""),
-                "insertStatus" 		=> "01",
-                "insertMessage" 	=> "channelId cant be empty",
-                "insertId" 			=> "",
-                "additionalData" 	=> ""
+                "channelId" => ($request->input('channelId') ?? ""),
+                "currency" => ($request->input('currency') ?? ""),
+                "insertStatus" => "01",
+                "insertMessage" => "channelId cant be empty",
+                "insertId" => "",
+                "additionalData" => ""
             ]);
         }
 
-        if (empty($request->input('serviceCode') ?? "")){
+        if (empty($request->input('serviceCode') ?? "")) {
             return response()->json([
-                "channelId" 		=> ($request->input('channelId') ?? ""),
-                "currency" 			=> ($request->input('currency') ?? ""),
-                "insertStatus" 		=> "01",
-                "insertMessage" 	=> "serviceCode cant be empty",
-                "insertId" 			=> "",
-                "additionalData" 	=> ""
+                "channelId" => ($request->input('channelId') ?? ""),
+                "currency" => ($request->input('currency') ?? ""),
+                "insertStatus" => "01",
+                "insertMessage" => "serviceCode cant be empty",
+                "insertId" => "",
+                "additionalData" => ""
             ]);
         }
 
-        if (empty($request->input('transactionNo') ?? "")){
+        if (empty($request->input('transactionNo') ?? "")) {
             return response()->json([
-                "channelId" 		=> ($request->input('channelId') ?? ""),
-                "currency" 			=> ($request->input('currency') ?? ""),
-                "insertStatus" 		=> "01",
-                "insertMessage" 	=> "transactionNo cant be empty",
-                "insertId" 			=> "",
-                "additionalData" 	=> ""
+                "channelId" => ($request->input('channelId') ?? ""),
+                "currency" => ($request->input('currency') ?? ""),
+                "insertStatus" => "01",
+                "insertMessage" => "transactionNo cant be empty",
+                "insertId" => "",
+                "additionalData" => ""
             ]);
         }
 
-        if (empty($request->input('customerAccount') ?? "")){
+        if (empty($request->input('customerAccount') ?? "")) {
             return response()->json([
-                "channelId" 		=> ($request->input('channelId') ?? ""),
-                "currency" 			=> ($request->input('currency') ?? ""),
-                "insertStatus" 		=> "01",
-                "insertMessage" 	=> "customerAccount cant be empty",
-                "insertId" 			=> "",
-                "additionalData" 	=> ""
+                "channelId" => ($request->input('channelId') ?? ""),
+                "currency" => ($request->input('currency') ?? ""),
+                "insertStatus" => "01",
+                "insertMessage" => "customerAccount cant be empty",
+                "insertId" => "",
+                "additionalData" => ""
             ]);
         }
 
-        if (trim(($request->input('transactionAmount') ?? "")) == ""){
+        if (trim(($request->input('transactionAmount') ?? "")) == "") {
             return response()->json([
-                "channelId" 		=> ($request->input('channelId') ?? ""),
-                "currency" 			=> ($request->input('currency') ?? ""),
-                "insertStatus" 		=> "01",
-                "insertMessage" 	=> "transactionAmount cant be empty",
-                "insertId" 			=> "",
-                "additionalData" 	=> ""
+                "channelId" => ($request->input('channelId') ?? ""),
+                "currency" => ($request->input('currency') ?? ""),
+                "insertStatus" => "01",
+                "insertMessage" => "transactionAmount cant be empty",
+                "insertId" => "",
+                "additionalData" => ""
             ]);
         }
 
 
-
-        if (empty($request->input('customerName') ?? "")){
+        if (empty($request->input('customerName') ?? "")) {
             return response()->json([
-                "channelId" 		=> ($request->input('channelId') ?? ""),
-                "currency" 			=> ($request->input('currency') ?? ""),
-                "insertStatus" 		=> "01",
-                "insertMessage" 	=> "customerName cant be empty",
-                "insertId" 			=> "",
-                "additionalData" 	=> ""
+                "channelId" => ($request->input('channelId') ?? ""),
+                "currency" => ($request->input('currency') ?? ""),
+                "insertStatus" => "01",
+                "insertMessage" => "customerName cant be empty",
+                "insertId" => "",
+                "additionalData" => ""
             ]);
         }
 
-        if (empty($request->input('transactionDate') ?? "")){
+        if (empty($request->input('transactionDate') ?? "")) {
             return response()->json([
-                "channelId" 		=> ($request->input('channelId') ?? ""),
-                "currency" 			=> ($request->input('currency') ?? ""),
-                "insertStatus" 		=> "01",
-                "insertMessage" 	=> "Invalid transactionDate",
-                "insertId" 			=> "",
-                "additionalData" 	=> ""
+                "channelId" => ($request->input('channelId') ?? ""),
+                "currency" => ($request->input('currency') ?? ""),
+                "insertStatus" => "01",
+                "insertMessage" => "Invalid transactionDate",
+                "insertId" => "",
+                "additionalData" => ""
             ]);
         }
 
-        if (empty($request->input('transactionExpire') ?? "")){
+        if (empty($request->input('transactionExpire') ?? "")) {
             return response()->json([
-                "channelId" 		=> ($request->input('channelId') ?? ""),
-                "currency" 			=> ($request->input('currency') ?? ""),
-                "insertStatus" 		=> "01",
-                "insertMessage" 	=> "Invalid transactionExpire",
-                "insertId" 			=> "",
-                "additionalData" 	=> ""
+                "channelId" => ($request->input('channelId') ?? ""),
+                "currency" => ($request->input('currency') ?? ""),
+                "insertStatus" => "01",
+                "insertMessage" => "Invalid transactionExpire",
+                "insertId" => "",
+                "additionalData" => ""
             ]);
         }
 
@@ -374,8 +374,9 @@ class NonSnapToSnapController extends Controller
         return null;
     }
 
-    public function validateQueryVa(Request $request) : ?\Illuminate\Http\JsonResponse{
-        if (empty($request->input('channelId') ?? "")){
+    public function validateQueryVa(Request $request): ?\Illuminate\Http\JsonResponse
+    {
+        if (empty($request->input('channelId') ?? "")) {
             return response()->json(
                 [
                     "channelId" => ($request->input("channelId") ?? ""),
@@ -384,7 +385,7 @@ class NonSnapToSnapController extends Controller
             );
         }
 
-        if (empty($request->input('serviceCode') ?? "")){
+        if (empty($request->input('serviceCode') ?? "")) {
             return response()->json(
                 [
                     "channelId" => ($request->input("channelId") ?? ""),
@@ -393,7 +394,8 @@ class NonSnapToSnapController extends Controller
             );
         }
 
-        if (!$request->has("queryRequest")){
+        //validate query request
+        if (!$request->has("queryRequest")) {
             return response()->json(
                 [
                     "channelId" => ($request->input("channelId") ?? ""),
@@ -401,51 +403,56 @@ class NonSnapToSnapController extends Controller
                 ]
             );
         }
-        $jsonQueryRequest = json_decode($request->input("queryRequest") ?? "", true);
-        if (!$jsonQueryRequest){
+        $jsonQueryRequest = $request->input("queryRequest");
+        if (!is_array($jsonQueryRequest)) {
+            if (!!json_encode($jsonQueryRequest, true)){
+                $jsonQueryRequest = json_decode($jsonQueryRequest, true);
+            }
+        }
+
+        if (!is_array($jsonQueryRequest)) {
             return response()->json(
                 [
                     "channelId" => ($request->input("channelId") ?? ""),
                     "queryResponse" => "Invalid queryRequest Format"
                 ]
             );
-        }else{
-            if (empty($jsonQueryRequest)){
-                return response()->json(
-                    [
-                        "channelId" => ($request->input("channelId") ?? ""),
-                        "queryResponse" => "Invalid queryRequest Format"
-                    ]
-                );
-            }
-
-            if (empty($jsonQueryRequest[0])){
-                return response()->json(
-                    [
-                        "channelId" => ($request->input("channelId") ?? ""),
-                        "queryResponse" => "Invalid queryRequest Format"
-                    ]
-                );
-            }
-            if (empty(($jsonQueryRequest[0]["transactionNo"] ?? "")) || empty(($jsonQueryRequest[0]["transactionDate"] ?? ""))){
-                return response()->json(
-                    [
-                        "channelId" => ($request->input("channelId") ?? ""),
-                        "queryResponse" => "Invalid queryRequest Format"
-                    ]
-                );
-            }
-
-
-
         }
+
+        if (empty($jsonQueryRequest)) {
+            return response()->json(
+                [
+                    "channelId" => ($request->input("channelId") ?? ""),
+                    "queryResponse" => "Invalid queryRequest Format"
+                ]
+            );
+        }
+
+        if (empty($jsonQueryRequest[0])) {
+            return response()->json(
+                [
+                    "channelId" => ($request->input("channelId") ?? ""),
+                    "queryResponse" => "Invalid queryRequest Format"
+                ]
+            );
+        }
+        if (empty(($jsonQueryRequest[0]["transactionNo"] ?? "")) || empty(($jsonQueryRequest[0]["transactionDate"] ?? ""))) {
+            return response()->json(
+                [
+                    "channelId" => ($request->input("channelId") ?? ""),
+                    "queryResponse" => "Invalid queryRequest Format"
+                ]
+            );
+        }
+
 
         return null;
     }
 
-    public function validateVoidVa(Request $request) : ?\Illuminate\Http\JsonResponse{
+    public function validateVoidVa(Request $request): ?\Illuminate\Http\JsonResponse
+    {
 
-        if (empty($request->input('serviceCode') ?? "")){
+        if (empty($request->input('serviceCode') ?? "")) {
             return response()->json(
                 [
                     "channelId" => ($request->input("channelId") ?? ""),
@@ -458,7 +465,7 @@ class NonSnapToSnapController extends Controller
             );
         }
 
-        if (empty($request->input('channelId') ?? "")){
+        if (empty($request->input('channelId') ?? "")) {
             return response()->json(
                 [
                     "channelId" => ($request->input("channelId") ?? ""),
@@ -471,7 +478,7 @@ class NonSnapToSnapController extends Controller
             );
         }
 
-        if (empty($request->input('transactionNo') ?? "")){
+        if (empty($request->input('transactionNo') ?? "")) {
             return response()->json(
                 [
                     "channelId" => ($request->input("channelId") ?? ""),
@@ -487,7 +494,6 @@ class NonSnapToSnapController extends Controller
 
         return null;
     }
-
 
 
 }

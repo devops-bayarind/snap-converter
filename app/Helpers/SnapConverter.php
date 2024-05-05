@@ -61,10 +61,15 @@ class SnapConverter
             }
         }
 
-
-        $jsonItemDetails = json_decode($request->input('itemDetails') ?? "");
-        if ($jsonItemDetails) {
-            $snapCreateVaRequestBody["additionalInfo"]["itemDetails"] = $jsonItemDetails;
+        if ($request->has("itemDetails")) {
+            if (is_array($request->input('itemDetails'))) {
+                $snapCreateVaRequestBody["additionalInfo"]["itemDetails"] = $request->input('itemDetails');
+            } else if (is_string($request->input('itemDetails'))) {
+                $jsonItemDetails = json_decode($request->input('itemDetails') ?? "");
+                if ($jsonItemDetails) {
+                    $snapCreateVaRequestBody["additionalInfo"]["itemDetails"] = $jsonItemDetails;
+                }
+            }
         }
 
         if ($request->has("additionalData")) {
@@ -123,32 +128,35 @@ class SnapConverter
             "inquiryRequestId" => $inquiryRequestId,
         ];
 
+        $jsonQueryRequest = $request->input("queryRequest");
+        if (!is_array($jsonQueryRequest)) {
+            if (!!json_encode($jsonQueryRequest, true)){
+                $jsonQueryRequest = json_decode($jsonQueryRequest, true);
+            }
+        }
 
-        if (!empty(($request->input("queryRequest") ?? ""))) {
-            $jsonQueryRequest = json_decode($request->input("queryRequest"), true);
-            if ($jsonQueryRequest) {
-                if (isset($jsonQueryRequest[0])) {
-                    $snapInquiryRequestBody["additionalInfo"] = [
-                        "trxId" => ($jsonQueryRequest[0]["transactionNo"] ?? ""),
-                        "trxDateInit" => empty(($jsonQueryRequest[0]["transactionDate"] ?? "")) ? "" : date('c', strtotime($jsonQueryRequest[0]["transactionDate"]))
-                    ];
+        if (is_array($jsonQueryRequest)){
+            if (isset($jsonQueryRequest[0])) {
+                $snapInquiryRequestBody["additionalInfo"] = [
+                    "trxId" => ($jsonQueryRequest[0]["transactionNo"] ?? ""),
+                    "trxDateInit" => empty(($jsonQueryRequest[0]["transactionDate"] ?? "")) ? "" : date('c', strtotime($jsonQueryRequest[0]["transactionDate"]))
+                ];
 
-                    // multipleQueryRequest
-                    if (count($jsonQueryRequest) > 1) {
-                        $listQueryRequest = [];
-                        foreach ($jsonQueryRequest as $itemQueryRequest) {
-                            $listQueryRequest[] = [
-                                "trxId" => ($itemQueryRequest["transactionNo"] ?? ""),
-                                "trxDateInit" => empty(($itemQueryRequest["transactionDate"] ?? "")) ? "" : date('c', strtotime($itemQueryRequest["transactionDate"]))
-                            ];
-                        }
-                        $snapInquiryRequestBody["additionalInfo"]["queryRequest"] = $listQueryRequest;
+                // multipleQueryRequest
+                if (count($jsonQueryRequest) > 1) {
+                    $listQueryRequest = [];
+                    foreach ($jsonQueryRequest as $itemQueryRequest) {
+                        $listQueryRequest[] = [
+                            "trxId" => ($itemQueryRequest["transactionNo"] ?? ""),
+                            "trxDateInit" => empty(($itemQueryRequest["transactionDate"] ?? "")) ? "" : date('c', strtotime($itemQueryRequest["transactionDate"]))
+                        ];
                     }
-
+                    $snapInquiryRequestBody["additionalInfo"]["queryRequest"] = $listQueryRequest;
                 }
 
             }
         }
+
         $snapInquiryRequestBody["additionalInfo"]["passApp"] = strtolower(hash('sha256', env('BAYARIND_SECRET_KEY')));
 
         return $snapInquiryRequestBody;
@@ -324,6 +332,14 @@ class SnapConverter
                 "insertMessage" => "Transaction is Exist",
                 "additionalData" => ""
             ];
+        }else if (($snapResponse["responseCode"] ?? "") == "4042716") {
+            return [
+                "channelId" => ($request->input("channelId") ?? ""),
+                "currency" => "",
+                "insertStatus" => "01",
+                "insertMessage" => "Invalid Company Code",
+                "additionalData" => ""
+            ];
         }
         return [
             "channelId" => ($request->input("channelId") ?? ""),
@@ -344,14 +360,18 @@ class SnapConverter
         $transactionAmount = null;
 
 
-        $jsonQueryRequest = json_decode($request->input("queryRequest"), true);
-        if ($jsonQueryRequest) {
+        $jsonQueryRequest = $request->input("queryRequest");
+        if (!is_array($jsonQueryRequest)) {
+            if (!!json_encode($jsonQueryRequest, true)){
+                $jsonQueryRequest = json_decode($jsonQueryRequest, true);
+            }
+        }
+        if (is_array($jsonQueryRequest)){
             if (isset($jsonQueryRequest[0])) {
                 $transactionNo = ($jsonQueryRequest[0]["transactionNo"] ?? "");
                 $transactionDate = ($jsonQueryRequest[0]["transactionDate"] ?? "");
             }
         }
-
 
         //transaction not found
         if (($snapResponse["responseCode"] ?? "") == "4042601") {
@@ -495,6 +515,15 @@ class SnapConverter
             "paymentReffId" => ($snapParam["referenceNo"] ?? ""),
             "channelId" => ($request->header("X-PARTNER-ID") ?? ""),
         ];
+
+        if (isset($snapParam["additionalInfo"]["additionalData"])){
+            if (is_string($snapParam["additionalInfo"]["additionalData"])){
+                if (!empty($snapParam["additionalInfo"]["additionalData"])){
+                    $nonSnapPaymentFlagParam["additionalData"] = $snapParam["additionalInfo"]["additionalData"];
+                }
+            }
+        }
+
         //generate auth code
         $prepareAuthCode = $nonSnapPaymentFlagParam["transactionNo"]
             . $nonSnapPaymentFlagParam["transactionAmount"]

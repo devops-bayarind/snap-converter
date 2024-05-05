@@ -502,6 +502,7 @@ class SnapConverter
             }
         }
         $nonSnapPaymentFlagParam = [
+            "channelId" => ($request->header("X-PARTNER-ID") ?? ""),
             "currency" => $snapParam["paidAmount"]["currency"],
             "transactionNo" => $snapParam["trxId"],
             "transactionAmount" => intval($snapParam["paidAmount"]["value"]),
@@ -513,7 +514,7 @@ class SnapConverter
             "flagType" => $flagType,
             "insertId" => $insertId,
             "paymentReffId" => ($snapParam["referenceNo"] ?? ""),
-            "channelId" => ($request->header("X-PARTNER-ID") ?? ""),
+            "additionalData" => ""
         ];
 
         if (isset($snapParam["additionalInfo"]["additionalData"])){

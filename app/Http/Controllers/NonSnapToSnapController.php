@@ -359,12 +359,34 @@ class NonSnapToSnapController extends Controller
             ]);
         }
 
+        if (!CommonHelper::checkDateFormat($request->input('transactionDate'))){
+            return response()->json([
+                "channelId" => ($request->input('channelId') ?? ""),
+                "currency" => ($request->input('currency') ?? ""),
+                "insertStatus" => "01",
+                "insertMessage" => "Invalid transaction date format",
+                "insertId" => "",
+                "additionalData" => ""
+            ]);
+        }
+
         if (empty($request->input('transactionExpire') ?? "")) {
             return response()->json([
                 "channelId" => ($request->input('channelId') ?? ""),
                 "currency" => ($request->input('currency') ?? ""),
                 "insertStatus" => "01",
                 "insertMessage" => "Invalid transactionExpire",
+                "insertId" => "",
+                "additionalData" => ""
+            ]);
+        }
+
+        if (!CommonHelper::checkDateFormat($request->input('transactionExpire'))){
+            return response()->json([
+                "channelId" => ($request->input('channelId') ?? ""),
+                "currency" => ($request->input('currency') ?? ""),
+                "insertStatus" => "01",
+                "insertMessage" => "Invalid transaction expired Date format",
                 "insertId" => "",
                 "additionalData" => ""
             ]);

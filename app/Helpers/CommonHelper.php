@@ -57,4 +57,9 @@ class CommonHelper
         $output = openssl_decrypt(base64_decode($string), $encrypt_method, $key, 0, $iv);
         return $output;
     }
+
+    static function checkDateFormat( $date ){
+        if($date == "0000-00-00 00:00:00") return false;
+        return preg_match('/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)$/',$date);
+    }
 }

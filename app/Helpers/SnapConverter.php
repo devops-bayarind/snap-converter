@@ -111,7 +111,7 @@ class SnapConverter
 
         //[NOTE] if non snap not send Customer Account, converter will generate dummy virtual account, because this parameter is required for snap
         if ($binLength > 0 && (empty($virtualAccountNo) || empty($customerNo) || empty($partnerServiceId))) {
-            $randNumber = substr(str_shuffle("0123456789"), 0, $binLength);
+            $randNumber = substr(str_shuffle("123456789"), 0, $binLength);
             $partnerServiceId = str_pad($randNumber, 8, " ", STR_PAD_LEFT);
             $customerNoLength = 11;
             if ($serviceCode == "1074"){
@@ -185,7 +185,7 @@ class SnapConverter
 
         //[NOTE] if non snap not send Customer Account, converter will generate dummy virtual account, because this parameter is required for snap
         if ($binLength > 0 && (empty($virtualAccountNo) || empty($customerNo) || empty($partnerServiceId))) {
-            $randNumber = substr(str_shuffle("0123456789"), 0, $binLength);
+            $randNumber = substr(str_shuffle("123456789"), 0, $binLength);
             $partnerServiceId = str_pad($randNumber, 8, " ", STR_PAD_LEFT);
             $customerNoLength = 11;
             if ($serviceCode == "1074"){
@@ -238,14 +238,20 @@ class SnapConverter
             }
             return [
                 "responseCode" => "404" . $apiServiceCode . "12",
-                "responseMessage" => "Bill not found"
+                "responseMessage" => "Bill not found [".($nonSnapResponse["paymentMessage"] ?? "")."]"
             ];
         } else if (($nonSnapResponse["paymentStatus"] ?? "01") == "02") {
             return [
                 "responseCode" => "404" . $apiServiceCode . "14",
                 "responseMessage" => "Bill has been paid"
             ];
-        } else if (($nonSnapResponse["paymentStatus"] ?? "01") == "04") {
+        } else if (($nonSnapResponse["paymentStatus"] ?? "01") == "03") {
+            return [
+                "responseCode" => "400" . $apiServiceCode . "01",
+                "responseMessage" => ($nonSnapResponse["paymentMessage"] ?? "Invalid parameter")
+            ];
+        }
+        else if (($nonSnapResponse["paymentStatus"] ?? "01") == "04") {
             return [
                 "responseCode" => "404" . $apiServiceCode . "19",
                 "responseMessage" => "Bill expired"
@@ -495,6 +501,14 @@ class SnapConverter
         if (($snapParam["flagAdvice"] ?? "") == "Y") {
             $flagType = "12";
         }
+
+        if (isset($snapParam["additionalInfo"])){
+            if (!empty(($snapParam["additionalInfo"]["flagType"] ?? ""))){
+                $flagType = $snapParam["additionalInfo"]["flagType"];
+            }
+        }
+
+
         $insertId = "";
         if (!empty(($snapParam["additionalInfo"] ?? ""))) {
             if (!empty(($snapParam["additionalInfo"]["insertId"]))) {

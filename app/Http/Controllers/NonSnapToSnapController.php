@@ -88,19 +88,21 @@ class NonSnapToSnapController extends Controller
         }
 
         CommonHelper::Log("Snap CreateVa Request Body: " . json_encode($snapRequestCreateVaBody, JSON_UNESCAPED_SLASHES));
+        try {
+            $response = Http::withHeaders(
+                $header
+            )->post($snapCreateVaUrl, $snapRequestCreateVaBody);
+            CommonHelper::Log("Snap CreateVa Response Body: " . $response->body());
+            if ($response->successful()) {
+                $snapResponse = $response->json();
 
-        $response = Http::withHeaders(
-            $header
-        )->post($snapCreateVaUrl, $snapRequestCreateVaBody);
-        CommonHelper::Log("Snap CreateVa Response Body: " . $response->body());
-        if ($response->successful()) {
-            $snapResponse = $response->json();
-
-            //convert response body from snap to non snap
-            $nonSnapResponse = SnapConverter::convertResponseBodyCreateVaSnapToNonSnap($request, $snapResponse);
-            return response()->json($nonSnapResponse);
+                //convert response body from snap to non snap
+                $nonSnapResponse = SnapConverter::convertResponseBodyCreateVaSnapToNonSnap($request, $snapResponse);
+                return response()->json($nonSnapResponse);
+            }
+        }catch (\Exception $exception) {
+            CommonHelper::Log("Snap CreateVa Response Exception: " . $exception->getMessage());
         }
-
         //endregion send create va with snap format
 
         return response()->json([
@@ -171,16 +173,21 @@ class NonSnapToSnapController extends Controller
             CommonHelper::Log("Snap InquiryStatus Request Header: " . json_encode(array_merge($header, ["X-SIGNATURE" => "***********"]), JSON_UNESCAPED_SLASHES));
         }
         CommonHelper::Log("Snap InquiryStatus Request Body: " . json_encode($snapRequestInquiryStatusBody, JSON_UNESCAPED_SLASHES));
-        $response = Http::withHeaders(
-            $header
-        )->post($snapInquiryStatusUrl, $snapRequestInquiryStatusBody);
-        CommonHelper::Log("Snap InquiryStatus Response Body: " . $response->body());
-        if ($response->successful()) {
-            $snapResponse = $response->json();
 
-            //convert response body from snap to non snap
-            $nonSnapResponse = SnapConverter::convertResponseBodyInquiryStatusVaSnapToNonSnap($request, $snapResponse);
-            return response()->json($nonSnapResponse);
+        try {
+            $response = Http::withHeaders(
+                $header
+            )->post($snapInquiryStatusUrl, $snapRequestInquiryStatusBody);
+            CommonHelper::Log("Snap InquiryStatus Response Body: " . $response->body());
+            if ($response->successful()) {
+                $snapResponse = $response->json();
+
+                //convert response body from snap to non snap
+                $nonSnapResponse = SnapConverter::convertResponseBodyInquiryStatusVaSnapToNonSnap($request, $snapResponse);
+                return response()->json($nonSnapResponse);
+            }
+        }catch (\Exception $exception) {
+            CommonHelper::Log("Snap InquiryStatus Response Exception: " . $exception->getMessage());
         }
 
         //endregion send inquiry status va with snap format
@@ -190,6 +197,7 @@ class NonSnapToSnapController extends Controller
                 "queryResponse" => "External Server Error"
             ]
         );
+
     }
 
     public function voidTransaction(Request $request)
@@ -255,15 +263,20 @@ class NonSnapToSnapController extends Controller
             CommonHelper::Log("Snap DeleteVA Request Header: " . json_encode(array_merge($header, ["X-SIGNATURE" => "***********"]), JSON_UNESCAPED_SLASHES));
         }
         CommonHelper::Log("Snap DeleteVA Request Body: " . json_encode($snapDeleteVaRequestBody, JSON_UNESCAPED_SLASHES));
-        $response = Http::withHeaders(
-            $header
-        )->delete($snaDeleteVaUrl, $snapDeleteVaRequestBody);
-        CommonHelper::Log("Snap DeleteVA Response Body: " . $response->body());
-        if ($response->successful()) {
-            $snapResponse = $response->json();
-            //convert response body from snap to non snap
-            $nonSnapResponse = SnapConverter::convertResponseBodyVoidVaSnapToNonSnap($request, $snapResponse);
-            return response()->json($nonSnapResponse);
+
+        try {
+            $response = Http::withHeaders(
+                $header
+            )->delete($snaDeleteVaUrl, $snapDeleteVaRequestBody);
+            CommonHelper::Log("Snap DeleteVA Response Body: " . $response->body());
+            if ($response->successful()) {
+                $snapResponse = $response->json();
+                //convert response body from snap to non snap
+                $nonSnapResponse = SnapConverter::convertResponseBodyVoidVaSnapToNonSnap($request, $snapResponse);
+                return response()->json($nonSnapResponse);
+            }
+        }catch (\Exception $exception) {
+            CommonHelper::Log("Snap DeleteVA Response Exception: " . $exception->getMessage());
         }
 
         //endregion send inquiry status va with snap format

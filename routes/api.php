@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 
+//Merchant Outbound
 //Convert non Snap -> Snap
 Route::controller(\App\Http\Controllers\NonSnapToSnapController::class)
     ->middleware(['request.logger'])->group(function () {
@@ -23,6 +24,10 @@ Route::controller(\App\Http\Controllers\NonSnapToSnapController::class)
         Route::post('/PostAuth', 'voidTransaction');
     });
 
+
+
+//Merchant Inbound
+//Convert Snap -> Non Snap
 $currentVersion = env("APP_VERSION", "v1.0");
 Route::middleware(['request.logger', 'snap.authentication'])
     ->prefix("$currentVersion/transfer-va")

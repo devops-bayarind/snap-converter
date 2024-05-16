@@ -36,7 +36,7 @@ class SnapAuthentication
 
         $relativePath = (substr($request->path(), 0, 1)!='/') ? '/'.$request->path() : $request->path();
         $stringToSign = SignatureHelper::createStringToSign($request->method(), $relativePath,$request->getContent(), $timestamp);
-
+        CommonHelper::Log("Inbound [".$apiServiceCode."] StringToSign: ".$stringToSign);
 //        Load public key
 
         $publicKey = openssl_pkey_get_public(env('BAYARIND_PUBLIC_KEY_PATH'));

@@ -48,6 +48,7 @@ class NonSnapToSnapController extends Controller
 
         //create string to sign
         $stringToSign = SignatureHelper::createStringToSign($httpMethod, $relativePath, $snapRequestCreateVaBody, $timeStamp);
+        CommonHelper::Log("Create VA StringToSign: ".$stringToSign);
 
         //load private key
         $privateKey = openssl_pkey_get_private(env('PRIVATE_KEY_PATH'));
@@ -135,7 +136,7 @@ class NonSnapToSnapController extends Controller
 
         //create string to sign
         $stringToSign = SignatureHelper::createStringToSign($httpMethod, $relativePath, $snapRequestInquiryStatusBody, $timeStamp);
-
+        CommonHelper::Log("Query Status StringToSign: ".$stringToSign);
         //load private key
         $privateKey = openssl_pkey_get_private(env('PRIVATE_KEY_PATH'));
         if (!$privateKey) {
@@ -221,7 +222,7 @@ class NonSnapToSnapController extends Controller
 
         //create string to sign
         $stringToSign = SignatureHelper::createStringToSign($httpMethod, $relativePath, $snapDeleteVaRequestBody, $timeStamp);
-
+        CommonHelper::Log("Void VA StringToSign: ".$stringToSign);
         //load private key
         $privateKey = openssl_pkey_get_private(env('PRIVATE_KEY_PATH'));
         if (!$privateKey) {

@@ -201,10 +201,10 @@ class SnapToNonSnapController extends Controller
                 "responseMessage" => "Invalid field format customerNo length",
             ], 200, ['X-TIMESTAMP' => date('c')]);
         }
-        if (!preg_match('/^\d+$/', trim($request["partnerServiceId"]))) {
+        if (!preg_match('/^\d+$/', trim($request["customerNo"]))) {
             return response()->json([
                 "responseCode" => "400" . $apiServiceCode . "01",
-                "responseMessage" => "Invalid field format customerNo length",
+                "responseMessage" => "Invalid field format customerNo",
             ], 200, ['X-TIMESTAMP' => date('c')]);
         }
 
@@ -272,7 +272,7 @@ class SnapToNonSnapController extends Controller
         if (empty(($request['paidAmount']['currency'] ?? ""))) {
             return response()->json([
                 "responseCode" => "400" . $apiServiceCode . "02",
-                "responseMessage" => "Missing mandatory field paidAmount.value",
+                "responseMessage" => "Missing mandatory field paidAmount.currency",
             ], 200, ['X-TIMESTAMP' => date('c')]);
         }
 
@@ -342,10 +342,10 @@ class SnapToNonSnapController extends Controller
                 "responseMessage" => "Invalid field format customerNo length",
             ], 200, ['X-TIMESTAMP' => date('c')]);
         }
-        if (!preg_match('/^\d+$/', trim($request["partnerServiceId"]))) {
+        if (!preg_match('/^\d+$/', trim($request["customerNo"]))) {
             return response()->json([
                 "responseCode" => "400" . $apiServiceCode . "01",
-                "responseMessage" => "Invalid field format customerNo length",
+                "responseMessage" => "Invalid field format customerNo",
             ], 200, ['X-TIMESTAMP' => date('c')]);
         }
 

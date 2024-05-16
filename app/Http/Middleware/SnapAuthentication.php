@@ -34,7 +34,12 @@ class SnapAuthentication
         //region verify signature
         //generate string to sign
 
-        $relativePath = (substr($request->path(), 0, 1)!='/') ? '/'.$request->path() : $request->path();
+        $slash = (substr(env('APP_URL'),-1) != "/") ? "/" : "";
+        $url = parse_url(env('APP_URL').$slash.$request->path());
+        $relativePath = "";
+        if (isset($url["path"])){
+            $relativePath = $url["path"];
+        }
         $stringToSign = SignatureHelper::createStringToSign($request->method(), $relativePath,$request->getContent(), $timestamp);
         CommonHelper::Log("Inbound [".$apiServiceCode."] StringToSign: ".$stringToSign);
 //        Load public key

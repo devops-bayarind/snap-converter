@@ -303,6 +303,14 @@ class SnapConverter
                         "value" => intval(($nonSnapResponse["transactionAmount"] ?? "0")) . ".00",
                         "currency" => $nonSnapResponse["currency"]
                     ],
+                    "billDetails" => [
+                        [
+                            "billDescription" => [
+                                "indonesia" => ($nonSnapResponse["description"] ?? ""),
+                                "english" => ($nonSnapResponse["description"] ?? "")
+                            ]
+                        ]
+                    ],
                     "additionalInfo" => [
                         "trxId" => $nonSnapResponse["transactionNo"],
                         "expiredDate" => date('c', strtotime($nonSnapResponse["transactionExpire"]))

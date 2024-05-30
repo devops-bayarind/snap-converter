@@ -24,6 +24,9 @@ class SnapConverter
             $virtualAccountNo = $partnerServiceId . $customerNo;
         }
 
+        $description = ($request->input("description") ?? "");
+        $shortDescription = (strlen($description) > 18) ? substr($description, 0, 18) : $description;
+
         $snapCreateVaRequestBody = [
             "partnerServiceId" => $partnerServiceId,
             "customerNo" => $customerNo,
@@ -39,13 +42,13 @@ class SnapConverter
             "billDetails" => [
                 [
                     "billDescription" => [
-                        "indonesia" => ($request->input("description") ?? ""),
-                        "english" => ($request->input("description") ?? "")
+                        "indonesia" => $shortDescription,
+                        "english" => $shortDescription
                     ]
                 ]
             ],
             "expiredDate" => (empty(($request->input("transactionExpire") ?? ""))) ? '' : date('c', strtotime($request->input("transactionExpire"))),
-            "additionalInfo"=>[
+            "additionalInfo" => [
                 "passApp" => strtolower(hash('sha256', env('BAYARIND_SECRET_KEY')))
             ]
         ];
@@ -59,6 +62,12 @@ class SnapConverter
                     $snapCreateVaRequestBody["additionalInfo"]["freeTexts"] = $jsonFreeText;
                 }
             }
+        }
+        if (strlen($description) > 18) {
+            $snapCreateVaRequestBody["additionalInfo"]["billDescription"] = [
+                "indonesia" => $description,
+                "english" => $description
+            ];
         }
 
         if ($request->has("itemDetails")) {
@@ -114,7 +123,7 @@ class SnapConverter
             $randNumber = substr(str_shuffle("123456789"), 0, $binLength);
             $partnerServiceId = str_pad($randNumber, 8, " ", STR_PAD_LEFT);
             $customerNoLength = 11;
-            if ($serviceCode == "1074"){
+            if ($serviceCode == "1074") {
                 $customerNoLength = 12;
             }
             $customerNo = str_pad(rand(0, pow(10, $customerNoLength) - 1), $customerNoLength, '0', STR_PAD_LEFT);
@@ -130,12 +139,12 @@ class SnapConverter
 
         $jsonQueryRequest = $request->input("queryRequest");
         if (!is_array($jsonQueryRequest)) {
-            if (!!json_encode($jsonQueryRequest, true)){
+            if (!!json_encode($jsonQueryRequest, true)) {
                 $jsonQueryRequest = json_decode($jsonQueryRequest, true);
             }
         }
 
-        if (is_array($jsonQueryRequest)){
+        if (is_array($jsonQueryRequest)) {
             if (isset($jsonQueryRequest[0])) {
                 $snapInquiryRequestBody["additionalInfo"] = [
                     "trxId" => ($jsonQueryRequest[0]["transactionNo"] ?? ""),
@@ -188,7 +197,7 @@ class SnapConverter
             $randNumber = substr(str_shuffle("123456789"), 0, $binLength);
             $partnerServiceId = str_pad($randNumber, 8, " ", STR_PAD_LEFT);
             $customerNoLength = 11;
-            if ($serviceCode == "1074"){
+            if ($serviceCode == "1074") {
                 $customerNoLength = 12;
             }
             $customerNo = str_pad(rand(0, pow(10, $customerNoLength) - 1), $customerNoLength, '0', STR_PAD_LEFT);
@@ -200,7 +209,7 @@ class SnapConverter
             "customerNo" => $customerNo,
             "virtualAccountNo" => $virtualAccountNo,
             "trxId" => ($request->input("transactionNo") ?? ""),
-            "additionalInfo"=>[
+            "additionalInfo" => [
                 "passApp" => strtolower(hash('sha256', env('BAYARIND_SECRET_KEY')))
             ]
         ];
@@ -238,7 +247,7 @@ class SnapConverter
             }
             return [
                 "responseCode" => "404" . $apiServiceCode . "12",
-                "responseMessage" => "Bill not found [".($nonSnapResponse["paymentMessage"] ?? "")."]"
+                "responseMessage" => "Bill not found [" . ($nonSnapResponse["paymentMessage"] ?? "") . "]"
             ];
         } else if (($nonSnapResponse["paymentStatus"] ?? "01") == "02") {
             return [
@@ -250,8 +259,7 @@ class SnapConverter
                 "responseCode" => "400" . $apiServiceCode . "01",
                 "responseMessage" => ($nonSnapResponse["paymentMessage"] ?? "Invalid parameter")
             ];
-        }
-        else if (($nonSnapResponse["paymentStatus"] ?? "01") == "04") {
+        } else if (($nonSnapResponse["paymentStatus"] ?? "01") == "04") {
             return [
                 "responseCode" => "404" . $apiServiceCode . "19",
                 "responseMessage" => "Bill expired"
@@ -346,7 +354,7 @@ class SnapConverter
                 "insertMessage" => "Transaction is Exist",
                 "additionalData" => ""
             ];
-        }else if (($snapResponse["responseCode"] ?? "") == "4042716") {
+        } else if (($snapResponse["responseCode"] ?? "") == "4042716") {
             return [
                 "channelId" => ($request->input("channelId") ?? ""),
                 "currency" => "",
@@ -376,11 +384,11 @@ class SnapConverter
 
         $jsonQueryRequest = $request->input("queryRequest");
         if (!is_array($jsonQueryRequest)) {
-            if (!!json_encode($jsonQueryRequest, true)){
+            if (!!json_encode($jsonQueryRequest, true)) {
                 $jsonQueryRequest = json_decode($jsonQueryRequest, true);
             }
         }
-        if (is_array($jsonQueryRequest)){
+        if (is_array($jsonQueryRequest)) {
             if (isset($jsonQueryRequest[0])) {
                 $transactionNo = ($jsonQueryRequest[0]["transactionNo"] ?? "");
                 $transactionDate = ($jsonQueryRequest[0]["transactionDate"] ?? "");
@@ -404,9 +412,9 @@ class SnapConverter
                 ],
             ];
         } else if (($snapResponse["responseCode"] ?? "") == "2002600") {
-            if (count(($snapResponse["virtualAccountData"]["additionalInfo"]["list"] ?? [])) > 1) {
+            if (count(($snapResponse["additionalInfo"]["list"] ?? [])) > 1) {
                 $queryResponse = [];
-                foreach ($snapResponse["virtualAccountData"]["additionalInfo"]["list"] as $itemQueryStatus) {
+                foreach ($snapResponse["additionalInfo"]["list"] as $itemQueryStatus) {
                     $queryResponse[] = self::convertQueryFromSnapToNonSnap(
                         $itemQueryStatus,
                         $itemQueryStatus["trxId"],
@@ -418,7 +426,7 @@ class SnapConverter
                     self::convertQueryFromSnapToNonSnap(
                         $snapResponse["virtualAccountData"],
                         $transactionNo,
-                        $snapResponse["virtualAccountData"]["additionalInfo"]["trxStatus"],
+                        $snapResponse["additionalInfo"]["trxStatus"],
                     )
                 ];
             }
@@ -510,8 +518,8 @@ class SnapConverter
             $flagType = "12";
         }
 
-        if (isset($snapParam["additionalInfo"])){
-            if (!empty(($snapParam["additionalInfo"]["flagType"] ?? ""))){
+        if (isset($snapParam["additionalInfo"])) {
+            if (!empty(($snapParam["additionalInfo"]["flagType"] ?? ""))) {
                 $flagType = $snapParam["additionalInfo"]["flagType"];
             }
         }
@@ -528,7 +536,7 @@ class SnapConverter
             "currency" => $snapParam["paidAmount"]["currency"],
             "transactionNo" => $snapParam["trxId"],
             "transactionAmount" => intval($snapParam["paidAmount"]["value"]),
-            "transactionDate" => empty($snapParam["trxDateTime"] ?? "") ? "": date('Y-m-d H:i:s', strtotime($snapParam["trxDateTime"])),
+            "transactionDate" => empty($snapParam["trxDateTime"] ?? "") ? "" : date('Y-m-d H:i:s', strtotime($snapParam["trxDateTime"])),
             "channelType" => ($snapParam["channelCode"] ?? ""),
             "transactionStatus" => "00",
             "transactionMessage" => "Approved",
@@ -539,9 +547,9 @@ class SnapConverter
             "additionalData" => ""
         ];
 
-        if (isset($snapParam["additionalInfo"]["additionalData"])){
-            if (is_string($snapParam["additionalInfo"]["additionalData"])){
-                if (!empty($snapParam["additionalInfo"]["additionalData"])){
+        if (isset($snapParam["additionalInfo"]["additionalData"])) {
+            if (is_string($snapParam["additionalInfo"]["additionalData"])) {
+                if (!empty($snapParam["additionalInfo"]["additionalData"])) {
                     $nonSnapPaymentFlagParam["additionalData"] = $snapParam["additionalInfo"]["additionalData"];
                 }
             }
@@ -573,7 +581,7 @@ class SnapConverter
 
         $nonSnapInquiryParam = [
             "currency" => $currency,
-            "transactionDate" => empty($snapParam["trxDateInit"] ?? "") ? "": date('Y-m-d H:i:s', strtotime($snapParam["trxDateInit"])),
+            "transactionDate" => empty($snapParam["trxDateInit"] ?? "") ? "" : date('Y-m-d H:i:s', strtotime($snapParam["trxDateInit"])),
             "channelType" => $snapParam["channelCode"] ?? "",
             "customerAccount" => trim($snapParam["virtualAccountNo"]),
             "inquiryReffId" => $snapParam["inquiryRequestId"],

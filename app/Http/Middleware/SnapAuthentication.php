@@ -46,7 +46,10 @@ class SnapAuthentication
 
         $publicKey = openssl_pkey_get_public(env('BAYARIND_PUBLIC_KEY_PATH'));
         if (!$publicKey){
-            CommonHelper::Log("Invalid public Key");
+            CommonHelper::Log("Invalid public Key: ".openssl_error_string());
+            if (!file_exists(env('BAYARIND_PUBLIC_KEY_PATH'))){
+                CommonHelper::Log("Not valid public key path: ". env('BAYARIND_PUBLIC_KEY_PATH'));
+            }
             return response()->json([
                 "responseCode" => "400" . $apiServiceCode . "02",
                 "responseMessage" => "Unauthorized Signature",

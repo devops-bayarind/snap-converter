@@ -53,7 +53,10 @@ class NonSnapToSnapController extends Controller
         //load private key
         $privateKey = openssl_pkey_get_private(env('PRIVATE_KEY_PATH'));
         if (!$privateKey) {
-            CommonHelper::Log("Invalid Private Key");
+            CommonHelper::Log("Invalid Private Key: ".openssl_error_string());
+            if (!file_exists(env('PRIVATE_KEY_PATH'))){
+                CommonHelper::Log("Not valid private key path: ". env('PRIVATE_KEY_PATH'));
+            }
             return response()->json([
                 "channelId" => ($request->input('channelId') ?? ""),
                 "currency" => ($request->input('currency') ?? ""),

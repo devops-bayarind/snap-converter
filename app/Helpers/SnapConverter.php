@@ -297,6 +297,11 @@ class SnapConverter
                 "responseMessage" => "Bill not found"
             ];
         } else {
+
+            $description =  ($nonSnapResponse["description"] ?? "");
+            $shortDescription = (strlen($description) > 18) ? substr($description, 0, 18) : $description;
+
+
             $snapResponse = [
                 "responseCode" => "200" . $apiServiceCode . "00",
                 "responseMessage" => "Success",
@@ -314,8 +319,8 @@ class SnapConverter
                     "billDetails" => [
                         [
                             "billDescription" => [
-                                "indonesia" => ($nonSnapResponse["description"] ?? ""),
-                                "english" => ($nonSnapResponse["description"] ?? "")
+                                "indonesia" => $shortDescription,
+                                "english" => $shortDescription
                             ]
                         ]
                     ],
@@ -325,6 +330,12 @@ class SnapConverter
                     ]
                 ]
             ];
+            if (strlen($description) > 18) {
+                $snapResponse["virtualAccountData"]["additionalInfo"]["billDescription"] = [
+                    "indonesia" => $description,
+                    "english" => $description
+                ];
+            }
             return $snapResponse;
         }
     }

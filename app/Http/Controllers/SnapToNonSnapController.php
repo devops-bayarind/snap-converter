@@ -130,8 +130,8 @@ class SnapToNonSnapController extends Controller
                 return response()->json($snapResponse, 200, ['X-TIMESTAMP' => date('c')]);
             } else {
                 return response()->json([
-                    "responseCode" => "500" . $apiServiceCode . "02",
-                    "responseMessage" => "External Server Error"
+                    "responseCode" => "500" . $apiServiceCode . "00",
+                    "responseMessage" => "General Error"
                 ], 200, ['X-TIMESTAMP' => date('c')]);
             }
         } catch (\Exception $exception) {

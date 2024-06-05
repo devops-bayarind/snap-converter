@@ -51,7 +51,7 @@ class SnapAuthentication
                 CommonHelper::Log("Not valid public key path: ". env('BAYARIND_PUBLIC_KEY_PATH'));
             }
             return response()->json([
-                "responseCode" => "400" . $apiServiceCode . "02",
+                "responseCode" => "401" . $apiServiceCode . "00",
                 "responseMessage" => "Unauthorized Signature",
             ]);
         }
@@ -59,7 +59,7 @@ class SnapAuthentication
 
         if (!SignatureHelper::verifyAsymmetricSignature($signature,$stringToSign,$publicKey)){
             return response()->json([
-                "responseCode" => "400" . $apiServiceCode . "02",
+                "responseCode" => "401" . $apiServiceCode . "00",
                 "responseMessage" => "Unauthorized Signature",
             ]);
         }

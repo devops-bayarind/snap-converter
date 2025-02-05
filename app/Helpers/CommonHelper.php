@@ -16,6 +16,7 @@ class CommonHelper
             case "1011":
                 return 4;
             case "1062":
+            case "1052":
             case "1021":
                 return 5;
             default:
